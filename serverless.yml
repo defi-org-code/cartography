@@ -1,0 +1,21 @@
+service: ${env:GITHUB_REPO_NAME}
+
+custom:
+  PROJECT: Temporary Project by Zlotin # change this to your project name!
+
+provider: ${file(./serverless-provider.yml)}
+
+functions:
+  writer:
+    handler: handler.writer
+    fileSystemConfig: ${file(./serverless-fs.yml)}
+    events:
+      - schedule: rate(60 minutes)
+  reader:
+    handler: handler.reader
+    fileSystemConfig: ${file(./serverless-fs.yml)}
+    events:
+      - http:
+          path: read/{param}
+          method: get
+          cors: true

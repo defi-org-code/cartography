@@ -1,0 +1,22 @@
+{
+  "name": "serverless-template",
+  "version": "1.0.0",
+  "description": "serverless template",
+  "license": "MIT",
+  "author": "defi.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/defi-org-code/serverless-template.git"
+  },
+  "bugs": {
+    "url": "https://github.com/defi-org-code/serverless-template/issues"
+  },
+  "homepage": "https://github.com/defi-org-code/serverless-template#readme",
+  "main": "index.js",
+  "dependencies": {
+    "fs-extra": "10.x.x"
+  },
+  "scripts": {
+    "test": ";"
+  }
+}
