@@ -1,7 +1,7 @@
 service: ${env:GITHUB_REPO_NAME}
 
 custom:
-  PROJECT: Temporary Project by Zlotin # change this to your project name!
+  PROJECT: Cartography by Zlotin
 
 provider: ${file(./serverless-provider.yml)}
 
@@ -10,7 +10,7 @@ functions:
     handler: handler.writer
     fileSystemConfig: ${file(./serverless-fs.yml)}
     events:
-      - schedule: rate(60 minutes)
+      - schedule: rate(6 hours)
   reader:
     handler: handler.reader
     fileSystemConfig: ${file(./serverless-fs.yml)}
