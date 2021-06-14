@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs-extra");
+const fetch = require("node-fetch");
 
 const storage = path.resolve(process.env.HOME_DIR, "storage.json");
 
@@ -7,14 +8,16 @@ const storage = path.resolve(process.env.HOME_DIR, "storage.json");
 
 async function reader(event, context) {
   const param = event.pathParameters.param;
-  const result = await fs.readJson(storage);
-  return success({ param, timestamp: new Date(result.timestamp) });
+  const {timestamp, writeIP} = await fs.readJson(storage);
+  const readIP = (await fetchGZippedResponse()).origin;
+  return success({param, timestamp: new Date(timestamp), writeIP, readIP, event, context});
 }
 
 async function writer(event, context) {
   await fs.ensureFile(storage);
   const timestamp = new Date().getTime();
-  await fs.writeJson(storage, {timestamp});
+  const writeIP = (await fetchGZippedResponse()).origin;
+  await fs.writeJson(storage, {timestamp, writeIP});
   return success("OK");
 }
 
@@ -36,6 +39,11 @@ async function catchErrors(event, context) {
       body: err.stack || err.toString(),
     };
   }
+}
+
+async function fetchGZippedResponse() {
+  const response = await fetch("https://httpbin.org/gzip"); // returns gzipped response with request info
+  return await response.json();
 }
 
 // exports

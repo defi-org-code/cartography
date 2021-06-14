@@ -1,7 +1,7 @@
 service: ${env:GITHUB_REPO_NAME}
 
 custom:
-  PROJECT: Cartography by Zlotin
+  PROJECT: Base Assets Squad by Zlotin
 
 provider: ${file(./serverless-provider.yml)}
 
