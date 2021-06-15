@@ -29,7 +29,9 @@
     "chai": "4.x.x",
     "mocha": "9.x.x",
     "prettier": "2.x.x",
-    "ts-node": "10.x.x"
+    "ts-generator": "0.x",
+    "ts-node": "10.x.x",
+    "typescript": "4.x.x"
   },
   "scripts": {
     "test": "mocha -r ts-node/register 'tests/**/*.ts'"
