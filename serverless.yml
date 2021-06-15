@@ -3,6 +3,9 @@ service: ${env:GITHUB_REPO_NAME}
 custom:
   PROJECT: Base Assets Squad by Zlotin
 
+plugins:
+  - serverless-plugin-typescript
+
 provider: ${file(./serverless-provider.yml)}
 
 functions:
@@ -10,7 +13,7 @@ functions:
     handler: handler.writer
     fileSystemConfig: ${file(./serverless-fs.yml)}
     events:
-      - schedule: rate(1 hour)
+      - schedule: rate(5 minutes)
   reader:
     handler: handler.reader
     fileSystemConfig: ${file(./serverless-fs.yml)}

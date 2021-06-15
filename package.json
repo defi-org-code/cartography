@@ -15,9 +15,26 @@
   "main": "index.js",
   "dependencies": {
     "fs-extra": "10.x.x",
-    "node-fetch": "2.x.x"
+    "lodash": "4.x.x",
+    "node-fetch": "2.x.x",
+    "serverless-plugin-typescript": "1.x.x"
+  },
+  "devDependencies": {
+    "@types/chai": "4.x.x",
+    "@types/fs-extra": "9.x.x",
+    "@types/lodash": "4.x.x",
+    "@types/mocha": "8.x.x",
+    "@types/node": "15.x.x",
+    "@types/node-fetch": "2.x.x",
+    "chai": "4.x.x",
+    "mocha": "9.x.x",
+    "prettier": "2.x.x",
+    "ts-node": "10.x.x"
   },
   "scripts": {
-    "test": ";"
+    "test": "mocha -r ts-node/register 'tests/**/*.ts'"
+  },
+  "prettier": {
+    "printWidth": 120
   }
 }
