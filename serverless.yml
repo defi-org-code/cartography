@@ -10,7 +10,7 @@ functions:
     handler: handler.writer
     fileSystemConfig: ${file(./serverless-fs.yml)}
     events:
-      - schedule: rate(1 minute)
+      - schedule: rate(1 hour)
   reader:
     handler: handler.reader
     fileSystemConfig: ${file(./serverless-fs.yml)}
