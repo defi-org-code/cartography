@@ -3,9 +3,6 @@ service: ${env:GITHUB_REPO_NAME}
 custom:
   PROJECT: Base Assets Squad by Zlotin
 
-plugins:
-  - serverless-plugin-typescript
-
 provider: ${file(./serverless-provider.yml)}
 
 functions:

@@ -12,24 +12,8 @@
     "url": "https://github.com/defi-org-code/cartography/issues"
   },
   "homepage": "https://github.com/defi-org-code/cartography#readme",
-  "main": "index.js",
   "dependencies": {
-    "@types/chai": "4.x.x",
-    "@types/fs-extra": "9.x.x",
-    "@types/lodash": "4.x.x",
-    "@types/mocha": "8.x.x",
-    "@types/node": "15.x.x",
-    "@types/node-fetch": "2.x.x",
-    "chai": "4.x.x",
-    "fs-extra": "10.x.x",
-    "lodash": "4.x.x",
-    "mocha": "9.x.x",
-    "node-fetch": "2.x.x",
-    "prettier": "2.x.x",
-    "serverless-plugin-typescript": "1.x.x",
-    "ts-generator": "0.x",
-    "ts-node": "10.x.x",
-    "typescript": "4.x.x"
+    "web3-candies": "git+https://github.com/defi-org-code/web3-candies.git"
   },
   "devDependencies": {},
   "scripts": {
