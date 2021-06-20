@@ -13,7 +13,7 @@
   },
   "homepage": "https://github.com/defi-org-code/cartography#readme",
   "dependencies": {
-    "web3-candies": "git+https://github.com/defi-org-code/web3-candies.git"
+    "@defi.org/web3-candies": "1.x.x"
   },
   "devDependencies": {},
   "scripts": {
