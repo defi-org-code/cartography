@@ -5,12 +5,11 @@ custom:
 
 provider: ${file(./serverless-provider.yml)}
 
+plugins:
+  - serverless-webpack
+
 package:
-  exclude:
-    - .idea/**
-    - .github/**
-    - node_modules/**
-    - tests/**
+  individually: true
 
 functions:
   writer:
