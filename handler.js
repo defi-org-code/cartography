@@ -1,6 +1,6 @@
 require("ts-node/register");
-import { FileStorage } from "./src/storage";
-import { onGet, onSchedule } from "./src/main";
+const { FileStorage } = require("./src/storage");
+const { onGet, onSchedule } = require("./src/main");
 
 const storage = new FileStorage(process.env.HOME_DIR);
 
