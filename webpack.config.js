@@ -1,3 +1,4 @@
+// webpack.config.js
 const slsw = require("serverless-webpack");
 
 module.exports = {
@@ -5,6 +6,9 @@ module.exports = {
   entry: slsw.lib.entries,
   resolve: {
     extensions: [".ts", "tsx"],
+    // alias: {
+    //   "node-fetch$": "node-fetch/lib/index.js",
+    // },
   },
   target: "node",
   module: {

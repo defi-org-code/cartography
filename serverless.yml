@@ -2,9 +2,6 @@ service: ${env:GITHUB_REPO_NAME}
 
 custom:
   PROJECT: Base Assets Squad by Zlotin
-  webpack:
-    includeModules: true
-    packager: 'npm'
 
 provider: ${file(./serverless-provider.yml)}
 

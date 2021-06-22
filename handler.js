@@ -1,4 +1,3 @@
-require("ts-node/register");
 const { FileStorage } = require("./src/storage");
 const { onGet, onSchedule } = require("./src/main");
 

@@ -21,7 +21,8 @@
     "ts-loader": "9.x.x"
   },
   "scripts": {
-    "test": "mocha -r ts-node/register 'tests/**/*.ts'"
+    "test": "mocha -r ts-node/register 'tests/**/*.ts'",
+    "serverless-test": "GITHUB_REPO_NAME='repo' AWS_STORAGE_ARN='arn:aws:elasticfilesystem:us-e-2:123456789012:access-point/fsap-12345678901234567' AWS_STORAGE_SG='sg' AWS_STORAGE_SUBNET='subnet' npx serverless webpack --out wut"
   },
   "prettier": {
     "printWidth": 120
