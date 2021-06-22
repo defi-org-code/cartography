@@ -5,6 +5,13 @@ custom:
 
 provider: ${file(./serverless-provider.yml)}
 
+package:
+  exclude:
+    - .idea/**
+    - .github/**
+    - node_modules/**
+    - tests/**
+
 functions:
   writer:
     handler: handler.writer
