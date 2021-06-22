@@ -17,7 +17,8 @@
   },
   "devDependencies": {
     "serverless-webpack": "5.x.x",
-    "webpack": "^5.x.x"
+    "webpack": "^5.x.x",
+    "ts-loader": "9.x.x"
   },
   "scripts": {
     "test": "mocha -r ts-node/register 'tests/**/*.ts'"
