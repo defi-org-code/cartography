@@ -1,10 +1,19 @@
 {
   "compilerOptions": {
     "target": "ES6",
-    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "removeComments": true,
+    "importHelpers": true,
     "strict": true,
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "node_modules",
+    ".serverless",
+    ".webpack",
+    "webpack.config.js",
+    "**/*.js"
+  ]
 }
