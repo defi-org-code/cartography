@@ -13,13 +13,12 @@
   },
   "homepage": "https://github.com/defi-org-code/cartography#readme",
   "dependencies": {
-    "@defi.org/web3-candies": "1.x.x"
-  },
-  "devDependencies": {
+    "@defi.org/web3-candies": "1.x.x",
     "serverless-webpack": "5.x.x",
     "webpack": "^5.x.x",
     "ts-loader": "9.x.x"
   },
+  "devDependencies": {},
   "scripts": {
     "test": "mocha -r ts-node/register 'tests/**/*.ts'"
   },
