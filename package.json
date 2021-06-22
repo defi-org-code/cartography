@@ -32,7 +32,6 @@
     "mocha": "9.x",
     "node-fetch": "2.x",
     "prettier": "2.x",
-    "prettier-plugin-solidity": "*",
     "prompts": "2.x",
     "solhint": "3.x",
     "ts-generator": "0.x",
