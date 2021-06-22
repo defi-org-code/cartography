@@ -1,10 +1,8 @@
-import { onSchedule, storageKey } from "../src/main";
-import { MemStorage } from "../src/storage";
+import { execSync } from "child_process";
+import os from "os";
 
 describe("main", () => {
-  it("schedule with MemStorage", async () => {
-    const storage = new MemStorage();
-    await onSchedule(storage);
-    await storage.read(storageKey);
+  it("node loads handler", async () => {
+    execSync(`HOME_DIR=${os.tmpdir()} node ./handler.js`);
   });
 });
