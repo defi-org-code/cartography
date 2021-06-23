@@ -2,10 +2,13 @@
 const slsw = require("serverless-webpack");
 
 module.exports = {
+  context: __dirname,
   mode: slsw.lib.webpack.isLocal ? "development" : "production",
   entry: slsw.lib.entries,
   resolve: {
-    extensions: [".ts", "tsx"],
+    extensions: [".ts", "tsx", ".js"],
+    symlinks: false,
+    cacheWithContext: false,
     // alias: {
     //   "node-fetch$": "node-fetch/lib/index.js",
     // },
@@ -14,7 +17,12 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.tsx?$/,
         loader: "ts-loader",
+        exclude: /node_modules/,
+        options: {
+          transpileOnly: true,
+        },
       },
     ],
   },

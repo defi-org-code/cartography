@@ -14,6 +14,8 @@ async function writer(event, context) {
   return success("OK");
 }
 
+// wrappers
+
 function success(result) {
   return {
     statusCode: 200,
@@ -31,6 +33,8 @@ async function catchErrors(event, context) {
     };
   }
 }
+
+// exports
 
 module.exports = {
   reader: catchErrors.bind(reader),
