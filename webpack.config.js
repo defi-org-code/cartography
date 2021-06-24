@@ -9,9 +9,6 @@ module.exports = {
     extensions: [".ts", "tsx", ".js"],
     symlinks: false,
     cacheWithContext: false,
-    // alias: {
-    //   "node-fetch$": "node-fetch/lib/index.js",
-    // },
   },
   target: "node",
   module: {

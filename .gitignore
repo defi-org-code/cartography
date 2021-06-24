@@ -1,6 +1,6 @@
 
-# Created by https://www.toptal.com/developers/gitignore/api/node,macos,sublimetext,intellij+all,visualstudiocode
-# Edit at https://www.toptal.com/developers/gitignore?templates=node,macos,sublimetext,intellij+all,visualstudiocode
+# Created by https://www.toptal.com/developers/gitignore/api/node,macos,sublimetext,intellij+all,visualstudiocode,web,serverless
+# Edit at https://www.toptal.com/developers/gitignore?templates=node,macos,sublimetext,intellij+all,visualstudiocode,web,serverless
 
 ### Intellij+all ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
@@ -243,6 +243,10 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+### Serverless ###
+# Ignore build directory
+.serverless
+
 ### SublimeText ###
 # Cache files for Sublime Text
 *.tmlanguage.cache
@@ -292,4 +296,19 @@ GitHub.sublime-settings
 .history
 .ionide
 
-# End of https://www.toptal.com/developers/gitignore/api/node,macos,sublimetext,intellij+all,visualstudiocode
+### Web ###
+*.asp
+*.cer
+*.csr
+*.css
+*.htm
+*.html
+*.js
+*.jsp
+*.php
+*.rss
+*.wasm
+*.wat
+*.xhtml
+
+# End of https://www.toptal.com/developers/gitignore/api/node,macos,sublimetext,intellij+all,visualstudiocode,web,serverless
