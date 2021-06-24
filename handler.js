@@ -1,7 +1,8 @@
 const { FileStorage } = require("./src/storage");
 const { onGet, onSchedule } = require("./src/main");
+const os = require("os");
 
-const storage = new FileStorage(process.env.HOME_DIR);
+const storage = new FileStorage(process.env.HOME_DIR || os.tmpdir());
 
 // handlers
 
