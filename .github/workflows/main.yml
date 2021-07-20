@@ -18,14 +18,29 @@ jobs:
         with:
           msg: ${{ github.repository }}
           seperator: '/'
+      - uses: actions/github-script@v4
+        env:
+          SECRETS: ${{ toJson(secrets) }}
+        id: filterSecrets
+        with:
+          script: |
+            const secrets = JSON.parse(process.env.SECRETS);
+            const newSecrets = {};
+            Object.keys(secrets).forEach(key => {
+              if (key.indexOf('SECRET_') === 0) {
+                newSecrets[key] = secrets[key].substring('SECRET_'.length);
+              }
+            });
+            return newSecrets;
+          result-encoding: json
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: |
-          npm ci
-          npm run test
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm run test --if-present
       - name: serverless deploy
         uses: serverless/github-action@master
         with:
@@ -36,4 +51,5 @@ jobs:
           AWS_STORAGE_ARN: ${{ secrets.SERVERLESS_AWS_STORAGE_ARN }}
           AWS_STORAGE_SG: ${{ secrets.SERVERLESS_AWS_STORAGE_SG }}
           AWS_STORAGE_SUBNET: ${{ secrets.SERVERLESS_AWS_STORAGE_SUBNET }}
+          REPO_SECRETS_JSON: ${{ steps.filterSecrets.outputs.result }}
           GITHUB_REPO_NAME: ${{ steps.splitrepo.outputs._1 }}
