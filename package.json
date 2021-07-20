@@ -28,8 +28,7 @@
     "test": "env TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' mocha -r ts-node/register 'test/**/*.ts'",
     "writer": "HOME_DIR=dist node -e \"require('./dist/index.js').writer().then(console.log)\"",
     "reader": "HOME_DIR=dist node -e \"require('./dist/index.js').reader({pathParameters:{param:'hello'}}).then(console.log)\"",
-    "serverless-test": "GITHUB_REPO_NAME='repo' AWS_STORAGE_ARN='arn:aws:elasticfilesystem:us-e-2:123456789012:access-point/fsap-12345678901234567' AWS_STORAGE_SG='sg' AWS_STORAGE_SUBNET='subnet' npx serverless webpack --out dist",
-    "serverless-package": "GITHUB_REPO_NAME='repo' AWS_STORAGE_ARN='arn:aws:elasticfilesystem:us-e-2:123456789012:access-point/fsap-12345678901234567' AWS_STORAGE_SG='sg' AWS_STORAGE_SUBNET='subnet' npx serverless package"
+    "serverless-package": "REPO_SECRETS_JSON='{}' GITHUB_REPO_NAME='repo' AWS_STORAGE_ARN='arn:aws:elasticfilesystem:us-e-2:123456789012:access-point/fsap-12345678901234567' AWS_STORAGE_SG='sg' AWS_STORAGE_SUBNET='subnet' npx serverless package"
   },
   "prettier": {
     "printWidth": 120
