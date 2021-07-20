@@ -4,18 +4,7 @@ import * as os from "os";
 
 const storage = new FileStorage(process.env.HOME_DIR || os.tmpdir());
 
-// handlers
-
-async function reader(event: any, context: any) {
-  return success(await onGet(storage, event.pathParameters.param));
-}
-
-async function writer(event: any, context: any) {
-  await onSchedule(storage);
-  return success("OK");
-}
-
-// wrappers
+async function _writer(event: any, context: any) {}
 
 function success(result: any) {
   return {
@@ -35,9 +24,11 @@ async function catchErrors(this: any, event: any, context: any) {
   }
 }
 
-// exports
+export const reader = catchErrors.bind(async (event: any, context: any) =>
+  success(await onGet(storage, event.pathParameters.param))
+);
 
-export default {
-  reader: catchErrors.bind(reader),
-  writer: catchErrors.bind(writer),
-};
+export const writer = catchErrors.bind(async (event: any, context: any) => {
+  await onSchedule(storage);
+  success("OK");
+});
