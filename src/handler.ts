@@ -4,7 +4,7 @@ import fetch from "node-fetch";
 import os from "os";
 
 const storage = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
-const SECRETS = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
+const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
 
 // handlers
 
