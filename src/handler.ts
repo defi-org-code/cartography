@@ -7,12 +7,13 @@ import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
 
 const storage = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
-const STORAGE_VERSION = 1;
+const STORAGE_VERSION = 2;
 
 // handlers
 
-interface Storage extends Record<number, string> {
+interface Storage {
   version: number;
+  blocks: Record<number, string>;
 }
 
 async function initStorage(): Promise<Storage> {
@@ -21,12 +22,12 @@ async function initStorage(): Promise<Storage> {
     const store: Storage = await fs.readJson(storage);
     if (!store.version || store.version < STORAGE_VERSION) {
       await fs.remove(storage);
-      return { version: STORAGE_VERSION };
+      return { version: STORAGE_VERSION, blocks: {} };
     } else {
       return store;
     }
   } catch (e) {
-    return { version: STORAGE_VERSION };
+    return { version: STORAGE_VERSION, blocks: {} };
   }
 }
 
@@ -46,12 +47,12 @@ async function _writer(event: any, context: any) {
 
 async function onBlock(cache: Storage) {
   const blockNumber = await web3().eth.getBlockNumber();
-  if (cache[blockNumber]) return;
+  if (cache.blocks[blockNumber]) return;
 
   const block = await web3().eth.getBlock(blockNumber);
 
   const datetime = new Date(parseInt(block.timestamp.toString()) * 1000).toUTCString();
-  cache[blockNumber] = datetime;
+  cache.blocks[blockNumber] = datetime;
 
   await fs.writeJson(storage, cache);
 }
