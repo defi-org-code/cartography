@@ -57,7 +57,7 @@ async function onBlock(cache: Storage) {
 async function _reader(event: any, context: any) {
   const length = event.pathParameters.param;
   const cache = await initStorage();
-  return success(cache);
+  return success(context);
 }
 
 // wrapper
