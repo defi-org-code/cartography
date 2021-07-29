@@ -3,17 +3,17 @@ import path from "path";
 import fs from "fs-extra";
 import os from "os";
 import Web3 from "web3";
-import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
+import { erc20s, estimatedBlockNumber, setWeb3Instance, web3 } from "@defi.org/web3-candies";
 
 const storage = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
-const STORAGE_VERSION = 2;
+const STORAGE_VERSION = 3;
 
 // handlers
 
 interface Storage {
   version: number;
-  blocks: Record<number, string>;
+  blocks: Record<number, any>;
 }
 
 async function initStorage(): Promise<Storage> {
@@ -45,30 +45,27 @@ async function _writer(event: any, context: any) {
 
   setWeb3Instance(new Web3(`https://eth-mainnet.alchemyapi.io/v2/${secrets.ALCHEMY_KEY}`));
 
-  await onBlock(cache);
+  await writeBlocks(cache);
 
-  return success(
-    {
-      currentRun: currentRun + 1,
-    },
-    currentRun < 60
-  );
+  return success({ currentRun: currentRun + 1 }, currentRun < 60);
 }
 
-async function onBlock(cache: Storage) {
-  const blockNumber = await web3().eth.getBlockNumber();
-  if (cache.blocks[blockNumber]) return;
+async function writeBlocks(cache: Storage) {
+  const current = await web3().eth.getBlockNumber();
+  const firstBlock = current - (60 * 60 * 24) / 13;
+  for (let i = firstBlock; i <= current; i++) {
+    if (!cache.blocks[current]) await onBlock(cache, current);
+  }
+}
 
-  const block = await web3().eth.getBlock(blockNumber);
-
-  const datetime = new Date(parseInt(block.timestamp.toString()) * 1000).toUTCString();
-  cache.blocks[blockNumber] = datetime;
-
+async function onBlock(cache: Storage, blockNumber: number) {
+  const logs = await web3().eth.getPastLogs({
+    fromBlock: blockNumber,
+    toBlock: blockNumber,
+    topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"], // Transfer
+  });
+  cache.blocks[blockNumber] = logs.length;
   await fs.writeJson(storage, cache);
-}
-
-async function sleep(seconds: number) {
-  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 
 async function _reader(event: any, context: any) {
@@ -87,7 +84,6 @@ function success(result: any, _continue?: boolean) {
   if (_continue !== undefined) {
     response.continue = _continue;
   }
-
   return response;
 }
 

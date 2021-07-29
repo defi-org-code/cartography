@@ -38,7 +38,7 @@ stepFunctions:
             Default: Done
           Wait:
             Type: Wait
-            Seconds: 1
+            Seconds: 10
             Next: Iterator
           Done:
             Type: Pass
@@ -52,7 +52,6 @@ functions:
   reader:
     handler: dist/index.reader
     fileSystemConfig: ${file(./serverless-fs.yml)}
-    timeout: 300
     events:
       - http:
           path: read/{param}
