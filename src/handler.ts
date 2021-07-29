@@ -7,7 +7,7 @@ import { erc20s, estimatedBlockNumber, setWeb3Instance, web3 } from "@defi.org/w
 
 const storage = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
-const STORAGE_VERSION = 3;
+const STORAGE_VERSION = 4;
 
 // handlers
 
@@ -48,7 +48,7 @@ async function _writer(event: any, context: any) {
 
   await writeBlocks(cache);
 
-  return success({ currentRun: currentRun + 1 }, currentRun < 60);
+  return success({ currentRun: currentRun + 1 }, currentRun < 3);
 }
 
 async function writeBlocks(cache: Storage) {
