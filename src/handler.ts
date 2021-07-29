@@ -13,7 +13,7 @@ const STORAGE_VERSION = 3;
 
 interface Storage {
   version: number;
-  blocks: Record<number, any>;
+  blocks: Record<number, number>;
 }
 
 async function initStorage(): Promise<Storage> {
@@ -43,7 +43,8 @@ async function _writer(event: any, context: any) {
 
   const cache = await initStorage();
 
-  setWeb3Instance(new Web3(`https://eth-mainnet.alchemyapi.io/v2/${secrets.ALCHEMY_KEY}`));
+  // setWeb3Instance(new Web3(`https://eth-mainnet.alchemyapi.io/v2/${secrets.ALCHEMY_KEY}`));
+  setWeb3Instance(new Web3(`https://cold-silent-rain.bsc.quiknode.pro/${secrets.QUICKNODE_KEY}/`));
 
   await writeBlocks(cache);
 
@@ -52,19 +53,65 @@ async function _writer(event: any, context: any) {
 
 async function writeBlocks(cache: Storage) {
   const current = await web3().eth.getBlockNumber();
-  const firstBlock = current - (60 * 60 * 24) / 13;
+  const firstBlock = current - (60 * 60 * 24) / 3;
   for (let i = firstBlock; i <= current; i++) {
     if (!cache.blocks[current]) await onBlock(cache, current);
   }
 }
 
+const transferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+const transferAbi = [
+  {
+    indexed: true,
+    internalType: "address",
+    name: "from",
+    type: "address",
+  },
+  {
+    indexed: true,
+    internalType: "address",
+    name: "to",
+    type: "address",
+  },
+  {
+    indexed: false,
+    internalType: "uint256",
+    name: "value",
+    type: "uint256",
+  },
+];
+
 async function onBlock(cache: Storage, blockNumber: number) {
-  const logs = await web3().eth.getPastLogs({
+  // const logs = await web3().eth.getPastLogs({
+  //   fromBlock: blockNumber,
+  //   toBlock: blockNumber,
+  //   topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"], // Transfer
+  // });
+  // cache.blocks[blockNumber] = _(logs).mapValues((l) => ({from:l.}));
+
+  const blockLogs = await web3().eth.getPastLogs({
     fromBlock: blockNumber,
     toBlock: blockNumber,
-    topics: ["0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"], // Transfer
+    topics: [transferTopic],
   });
-  cache.blocks[blockNumber] = logs.length;
+  console.log("blockLogs.length", blockLogs.length);
+
+  const transfers = _.map(blockLogs, (log) => {
+    try {
+      const { from, to, value } = web3().eth.abi.decodeLog(
+        transferAbi,
+        log.data,
+        _.reject(log.topics, (t) => t == transferTopic)
+      );
+      return { from, to, value };
+    } catch (e) {
+      return undefined;
+    }
+  }).filter((l) => !!l);
+  console.log("transfers", transfers.length);
+
+  cache.blocks[blockNumber] = transfers.length;
+
   await fs.writeJson(storage, cache);
 }
 
