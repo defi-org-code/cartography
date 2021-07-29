@@ -53,9 +53,12 @@ async function _writer(event: any, context: any) {
 
 async function writeBlocks(cache: Storage) {
   const current = await web3().eth.getBlockNumber();
-  const firstBlock = current - (60 * 60 * 24) / 3;
+  const firstBlock = current - 60 / 3;
   for (let i = firstBlock; i <= current; i++) {
-    if (!cache.blocks[current]) await onBlock(cache, current);
+    if (!cache.blocks[current]) {
+      await onBlock(cache, current);
+      await fs.writeJson(storage, cache);
+    }
   }
 }
 
@@ -104,15 +107,11 @@ async function onBlock(cache: Storage, blockNumber: number) {
         _.reject(log.topics, (t) => t == transferTopic)
       );
       return { from, to, value };
-    } catch (e) {
-      return undefined;
-    }
+    } catch (e) {}
   }).filter((l) => !!l);
   console.log("transfers", transfers.length);
 
   cache.blocks[blockNumber] = transfers.length;
-
-  await fs.writeJson(storage, cache);
 }
 
 async function _reader(event: any, context: any) {
