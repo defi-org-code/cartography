@@ -1,7 +1,6 @@
 import _ from "lodash";
 import path from "path";
 import fs from "fs-extra";
-import fetch from "node-fetch";
 import os from "os";
 import Web3 from "web3";
 import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
@@ -32,12 +31,15 @@ async function initStorage(): Promise<Storage> {
 }
 
 async function _writer(event: any, context: any) {
-  // const fnTimestamp = new Date().getTime();
+  const endTimestamp = Date.now() + 1000 * 60 * 2;
   const cache = await initStorage();
 
   setWeb3Instance(new Web3("https://bsc-dataseed4.binance.org/"));
 
-  await onBlock(cache);
+  while (Date.now() < endTimestamp) {
+    await onBlock(cache);
+    await sleep(1);
+  }
 
   return success("OK");
 }
@@ -54,10 +56,14 @@ async function onBlock(cache: Storage) {
   await fs.writeJson(storage, cache);
 }
 
+async function sleep(seconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+}
+
 async function _reader(event: any, context: any) {
   const length = event.pathParameters.param;
   const cache = await initStorage();
-  return success(context);
+  return success(cache);
 }
 
 // wrapper
