@@ -35,7 +35,7 @@ async function _writer(event: any, context: any) {
   const endTimestamp = Date.now() + 1000 * 60 * 2;
   const cache = await initStorage();
 
-  setWeb3Instance(new Web3(`https://cold-silent-rain.bsc.quiknode.pro/${secrets.QUICKNODE_KEY}/`));
+  setWeb3Instance(new Web3("https://bsc-dataseed4.defibit.io/"));
 
   while (Date.now() < endTimestamp) {
     await onBlock(cache);
