@@ -5,6 +5,9 @@ custom:
 
 provider: ${file(./serverless-provider.yml)}
 
+plugins:
+  - serverless-step-functions
+
 package:
   patterns:
     - "!*"
@@ -12,15 +15,44 @@ package:
     - "dist/*"
     - "dist/*/**"
 
+stepFunctions:
+  stateMachines:
+    writer_wakeup:
+      events:
+        - schedule: rate(1 minute)
+      definition:
+        StartAt: Iterator
+        States:
+          Iterator:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [writer, Arn]
+            ResultPath: "$.taskresult"
+            Next: IsCountReached
+          IsCountReached:
+            Type: Choice
+            Choices:
+              - Variable: "$.taskresult.continue"
+                BooleanEquals: true
+                Next: Wait
+            Default: Done
+          Wait:
+            Type: Wait
+            Seconds: 1
+            Next: Iterator
+          Done:
+            Type: Pass
+            End: true
+
 functions:
   writer:
     handler: dist/index.writer
     fileSystemConfig: ${file(./serverless-fs.yml)}
-    events:
-      - schedule: rate(1 minute)
+    timeout: 300
   reader:
     handler: dist/index.reader
     fileSystemConfig: ${file(./serverless-fs.yml)}
+    timeout: 300
     events:
       - http:
           path: read/{param}

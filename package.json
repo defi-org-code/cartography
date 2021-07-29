@@ -15,7 +15,8 @@
   "homepage": "https://github.com/defi-org-code/cartography#readme",
   "main": "dist/index.js",
   "dependencies": {
-    "@defi.org/web3-candies": "1.x"
+    "@defi.org/web3-candies": "1.x",
+    "serverless-step-functions": "2.x"
   },
   "devDependencies": {
     "@vercel/ncc": "0.x",

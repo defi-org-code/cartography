@@ -32,17 +32,27 @@ async function initStorage(): Promise<Storage> {
 }
 
 async function _writer(event: any, context: any) {
-  const endTimestamp = Date.now() + 1000 * 60 * 2;
+  console.log("running writer");
+  let currentRun: number = 0;
+
+  if (event["taskresult"]) {
+    const previousResult = JSON.parse(event["taskresult"].body);
+    currentRun = previousResult.currentRun;
+  }
+  console.log("current run", currentRun);
+
   const cache = await initStorage();
 
-  setWeb3Instance(new Web3("https://bsc-dataseed4.defibit.io/"));
+  setWeb3Instance(new Web3(`https://eth-mainnet.alchemyapi.io/v2/${secrets.ALCHEMY_KEY}`));
 
-  while (Date.now() < endTimestamp) {
-    await onBlock(cache);
-    await sleep(1);
-  }
+  await onBlock(cache);
 
-  return success("OK");
+  return success(
+    {
+      currentRun: currentRun + 1,
+    },
+    currentRun < 60
+  );
 }
 
 async function onBlock(cache: Storage) {
@@ -69,11 +79,16 @@ async function _reader(event: any, context: any) {
 
 // wrapper
 
-function success(result: any) {
-  return {
+function success(result: any, _continue?: boolean) {
+  const response: any = {
     statusCode: 200,
-    body: JSON.stringify(result, null, 2),
+    body: JSON.stringify(result),
   };
+  if (_continue !== undefined) {
+    response.continue = _continue;
+  }
+
+  return response;
 }
 
 async function catchErrors(this: any, event: any, context: any) {
