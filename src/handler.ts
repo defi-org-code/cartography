@@ -1,27 +1,63 @@
+import _ from "lodash";
 import path from "path";
 import fs from "fs-extra";
 import fetch from "node-fetch";
 import os from "os";
+import Web3 from "web3";
+import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
 
 const storage = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
+const STORAGE_VERSION = 1;
 
 // handlers
 
-async function _reader(event: any, context: any) {
-  const param = event.pathParameters.param;
-  console.log(`reader running with param = ${param}`);
-  const { timestamp, writeIP } = await fs.readJson(storage);
-  const readIP = (await fetchJson()).origin;
-  return success({ param, timestamp: new Date(timestamp), writeIP, readIP, event, context });
+interface Storage extends Record<number, string> {
+  version: number;
+}
+
+async function initStorage(): Promise<Storage> {
+  try {
+    await fs.ensureFile(storage);
+    const store: Storage = await fs.readJson(storage);
+    if (!store.version || store.version < STORAGE_VERSION) {
+      await fs.remove(storage);
+      return { version: STORAGE_VERSION };
+    } else {
+      return store;
+    }
+  } catch (e) {
+    return { version: STORAGE_VERSION };
+  }
 }
 
 async function _writer(event: any, context: any) {
-  await fs.ensureFile(storage);
-  const timestamp = new Date().getTime();
-  const writeIP = (await fetchJson()).origin;
-  await fs.writeJson(storage, { timestamp, writeIP });
+  // const fnTimestamp = new Date().getTime();
+  const cache = await initStorage();
+
+  setWeb3Instance(new Web3("https://bsc-dataseed4.binance.org/"));
+
+  await onBlock(cache);
+
   return success("OK");
+}
+
+async function onBlock(cache: Storage) {
+  const blockNumber = await web3().eth.getBlockNumber();
+  if (cache[blockNumber]) return;
+
+  const block = await web3().eth.getBlock(blockNumber);
+
+  const datetime = new Date(parseInt(block.timestamp.toString()) * 1000).toUTCString();
+  cache[blockNumber] = datetime;
+
+  await fs.writeJson(storage, cache);
+}
+
+async function _reader(event: any, context: any) {
+  const length = event.pathParameters.param;
+  const cache = await initStorage();
+  return success(cache);
 }
 
 // wrapper
@@ -44,13 +80,6 @@ async function catchErrors(this: any, event: any, context: any) {
       body: message,
     };
   }
-}
-
-// example
-
-async function fetchJson() {
-  const response = await fetch("https://httpbin.org/gzip"); // some example JSON web service
-  return await response.json();
 }
 
 // exports
