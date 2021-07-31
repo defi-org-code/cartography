@@ -5,8 +5,8 @@ import os from "os";
 import Web3 from "web3";
 import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
 
-const ITER_STEP_SEC = Number(process.env.ITER_STEP_SEC || 10);
-const ITER_PER_STEP = 60 / ITER_STEP_SEC;
+const STEP_WAIT_SEC = Number(process.env.ITER_STEP_SEC || 10);
+const ITER_PER_STEP = 60 / STEP_WAIT_SEC;
 const SECONDS_PER_BLOCK = 3;
 const STORAGE_VERSION = 5;
 const storage = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
