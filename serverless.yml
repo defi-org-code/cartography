@@ -38,7 +38,7 @@ stepFunctions:
             Default: Done
           Wait:
             Type: Wait
-            Seconds: 10
+            Seconds: ${self:environment.ITER_STEP_SEC}
             Next: Iterator
           Done:
             Type: Pass
@@ -49,6 +49,8 @@ functions:
     handler: dist/index.writer
     fileSystemConfig: ${file(./serverless-fs.yml)}
     timeout: 300
+  #    events:
+  #      - schedule: rate(1 minute)
   reader:
     handler: dist/index.reader
     fileSystemConfig: ${file(./serverless-fs.yml)}
