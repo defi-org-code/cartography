@@ -2,7 +2,6 @@ service: ${env:GITHUB_REPO_NAME}
 
 custom:
   PROJECT: Base Assets Squad by Zlotin
-  STEP_WAIT_SEC: 10
 
 provider: ${file(./serverless-provider.yml)}
 
@@ -39,7 +38,7 @@ stepFunctions:
             Default: Done
           Wait:
             Type: Wait
-            Seconds: ${self:custom.STEP_WAIT_SEC}
+            Seconds: 10
             Next: Iterator
           Done:
             Type: Pass
