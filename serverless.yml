@@ -38,7 +38,7 @@ stepFunctions:
             Default: Done
           Wait:
             Type: Wait
-            Seconds: ${self:environment.ITER_STEP_SEC}
+            Seconds: ${self:provider.environment.ITER_STEP_SEC}
             Next: Iterator
           Done:
             Type: Pass
