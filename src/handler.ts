@@ -8,10 +8,10 @@ import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
 const ITER_STEP_SEC = Number(process.env.ITER_STEP_SEC || 10);
 const ITER_PER_STEP = 60 / ITER_STEP_SEC;
 const SECONDS_PER_BLOCK = 3;
+const STORAGE_VERSION = 5;
 const storage = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 const lock = path.resolve(process.env.HOME_DIR || os.tmpdir(), "lock");
 const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
-const STORAGE_VERSION = 4;
 
 // handlers
 
