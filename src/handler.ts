@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs-extra";
 import os from "os";
 import Web3 from "web3";
-import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
+import { contract, setWeb3Instance, web3 } from "@defi.org/web3-candies";
 
 const STORAGE_VERSION = 11;
 const STEP_WAIT_SEC = 10;
@@ -135,22 +135,25 @@ async function onBlock(cache: Storage, blockNumber: number) {
 
 async function _reader(event: any, context: any) {
   const length = event.pathParameters.param;
-  const cache = await initStorage();
-  // const keys = _(cache.blocks)
-  //   .keys()
-  //   .map((k) => Number(k))
-  //   .sort()
-  //   .value();
-  // const first = _.first(keys);
-  // const last = _.last(keys);
-  //
-  // for (let i = 0; i < keys.length; i++) {
-  //   if (keys[i] + 1 == keys[i+1]) {
-  //
-  //   }
-  // }
 
-  return success(cache);
+  const cache = await initStorage();
+
+  const keys = _(cache.blocks).keys().map(_.toNumber).sort().value();
+  const earliest = _.first(keys);
+  const latest = _.last(keys);
+
+  const missing = [];
+  for (let i = 1; i < keys.length; i++) {
+    if (keys[i] != keys[i - missing.length - 1] + 1) {
+      missing.push(keys[i]);
+    }
+  }
+
+  return success({
+    earliest,
+    latest,
+    missing,
+  });
 }
 
 // wrapper
