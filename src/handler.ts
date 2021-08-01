@@ -73,10 +73,12 @@ async function _writer(event: any, context: any) {
 async function writeBlocks() {
   const cache = await initStorage();
   const current = await web3().eth.getBlockNumber();
-  const firstBlock = _.toNumber(_(cache.blocks).keys().first()) || current - 60 / SECONDS_PER_BLOCK;
+  const firstBlock = _.toNumber(_(cache.blocks).keys().sortBy(_.toNumber).first() || current - 60 / SECONDS_PER_BLOCK);
+  console.log("running from ", firstBlock);
   for (let i = firstBlock; i <= current; i++) {
-    if (!cache.blocks[current]) {
-      await onBlock(cache, current);
+    if (!cache.blocks[i]) {
+      console.log("fetching missing block", i);
+      await onBlock(cache, i);
       await fs.writeJson(storage, cache);
     }
   }
