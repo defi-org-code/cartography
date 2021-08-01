@@ -39,8 +39,16 @@ async function initStorage(): Promise<Storage> {
   }
 }
 
+async function isLocked() {
+  try {
+    return fs.existsSync(lock) && _.get(await fs.readJson(lock), ["locked"], 0) > Date.now() - 60 * 1000;
+  } catch (e) {
+    return false;
+  }
+}
+
 async function _writer(event: any, context: any) {
-  if (fs.existsSync(lock) && _.get(await fs.readJson(lock), ["locked"], 0) > Date.now() - 60 * 1000) {
+  if (await isLocked()) {
     console.log("locked");
     return;
   }
