@@ -5,10 +5,10 @@ import os from "os";
 import Web3 from "web3";
 import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
 
-const STORAGE_VERSION = 9;
+const STORAGE_VERSION = 8;
 const STEP_WAIT_SEC = 10;
 const ITER_PER_STEP = 60 / STEP_WAIT_SEC;
-const SECONDS_PER_BLOCK = 13.2;
+const SECONDS_PER_BLOCK = 3;
 const storage = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 const lock = path.resolve(process.env.HOME_DIR || os.tmpdir(), "lock");
 const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
@@ -59,8 +59,8 @@ async function _writer(event: any, context: any) {
     const iteration = _.get(event, ["taskresult", "body", "iteration"], 0);
     console.log("iteration", iteration);
 
-    setWeb3Instance(new Web3(`https://eth-mainnet.alchemyapi.io/v2/${secrets.ALCHEMY_KEY}`));
-    // setWeb3Instance(new Web3(`https://cold-silent-rain.bsc.quiknode.pro/${secrets.QUICKNODE_KEY}/`));
+    // setWeb3Instance(new Web3(`https://eth-mainnet.alchemyapi.io/v2/${secrets.ALCHEMY_KEY}`));
+    setWeb3Instance(new Web3(`https://cold-silent-rain.bsc.quiknode.pro/${secrets.QUICKNODE_KEY}/`));
 
     await writeBlocks();
 
@@ -73,7 +73,7 @@ async function _writer(event: any, context: any) {
 async function writeBlocks() {
   const cache = await initStorage();
   const current = await web3().eth.getBlockNumber();
-  const firstBlock = current - 60 / SECONDS_PER_BLOCK;
+  const firstBlock = _.toNumber(_(cache.blocks).keys().first()) || current - 60 / SECONDS_PER_BLOCK;
   for (let i = firstBlock; i <= current; i++) {
     if (!cache.blocks[current]) {
       await onBlock(cache, current);
