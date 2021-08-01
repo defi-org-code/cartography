@@ -5,7 +5,7 @@ import os from "os";
 import Web3 from "web3";
 import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
 
-const STORAGE_VERSION = 10;
+const STORAGE_VERSION = 11;
 const STEP_WAIT_SEC = 10;
 const ITER_PER_STEP = 60 / STEP_WAIT_SEC;
 const SECONDS_PER_BLOCK = 3;
