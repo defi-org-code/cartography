@@ -5,7 +5,7 @@ import os from "os";
 import Web3 from "web3";
 import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
 
-const STORAGE_VERSION = 5;
+const STORAGE_VERSION = 6;
 const STEP_WAIT_SEC = 10;
 const ITER_PER_STEP = 60 / STEP_WAIT_SEC;
 const SECONDS_PER_BLOCK = 3;
@@ -20,18 +20,22 @@ interface Storage {
   blocks: Record<number, number>;
 }
 
+function newStorage(): Storage {
+  return { version: STORAGE_VERSION, blocks: {} };
+}
+
 async function initStorage(): Promise<Storage> {
   try {
     await fs.ensureFile(storage);
     const store: Storage = await fs.readJson(storage);
     if (!store.version || store.version < STORAGE_VERSION) {
       await fs.remove(storage);
-      return { version: STORAGE_VERSION, blocks: {} };
+      return newStorage();
     } else {
       return store;
     }
   } catch (e) {
-    return { version: STORAGE_VERSION, blocks: {} };
+    return newStorage();
   }
 }
 
@@ -40,19 +44,22 @@ async function _writer(event: any, context: any) {
     console.log("locked");
     return;
   }
-  fs.writeFileSync(lock, "locked");
-  console.log("running writer");
+  try {
+    fs.writeFileSync(lock, "locked");
+    console.log("running writer");
 
-  const iteration = _.get(event, ["taskresult", "body", "iteration"], 0);
-  console.log("iteration", iteration);
+    const iteration = _.get(event, ["taskresult", "body", "iteration"], 0);
+    console.log("iteration", iteration);
 
-  // setWeb3Instance(new Web3(`https://eth-mainnet.alchemyapi.io/v2/${secrets.ALCHEMY_KEY}`));
-  setWeb3Instance(new Web3(`https://cold-silent-rain.bsc.quiknode.pro/${secrets.QUICKNODE_KEY}/`));
+    // setWeb3Instance(new Web3(`https://eth-mainnet.alchemyapi.io/v2/${secrets.ALCHEMY_KEY}`));
+    setWeb3Instance(new Web3(`https://cold-silent-rain.bsc.quiknode.pro/${secrets.QUICKNODE_KEY}/`));
 
-  await writeBlocks();
+    await writeBlocks();
 
-  fs.removeSync(lock);
-  return success({ iteration: iteration + 1 }, iteration < ITER_PER_STEP);
+    return success({ iteration: iteration + 1 }, iteration < ITER_PER_STEP);
+  } finally {
+    fs.removeSync(lock);
+  }
 }
 
 async function writeBlocks() {
@@ -90,6 +97,8 @@ const transferAbi = [
 ];
 
 async function onBlock(cache: Storage, blockNumber: number) {
+  // const b = await web3().eth.getBlock(blockNumber, true);
+
   const blockLogs = await web3().eth.getPastLogs({
     fromBlock: blockNumber,
     toBlock: blockNumber,
