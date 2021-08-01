@@ -16,6 +16,17 @@ const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
 
 // handlers
 
+const STORAGE_VERSION = 11;
+
+interface Storage {
+  version: number;
+  blocks: Record<number, number>;
+}
+
+function newStorage(): Storage {
+  return { version: STORAGE_VERSION, blocks: {} };
+}
+
 async function initStorage(): Promise<Storage> {
   try {
     await fs.ensureFile(storage);
