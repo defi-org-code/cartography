@@ -3,26 +3,18 @@ import path from "path";
 import fs from "fs-extra";
 import os from "os";
 import Web3 from "web3";
-import { contract, setWeb3Instance, web3 } from "@defi.org/web3-candies";
+import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
+import { createClient } from "redis";
+import { promisify } from "util";
 
-const STORAGE_VERSION = 11;
+const SECONDS_PER_BLOCK = 3;
 const STEP_WAIT_SEC = 10;
 const ITER_PER_STEP = 60 / STEP_WAIT_SEC;
-const SECONDS_PER_BLOCK = 3;
 const storage = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 const lock = path.resolve(process.env.HOME_DIR || os.tmpdir(), "lock");
 const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
 
 // handlers
-
-interface Storage {
-  version: number;
-  blocks: Record<number, number>;
-}
-
-function newStorage(): Storage {
-  return { version: STORAGE_VERSION, blocks: {} };
-}
 
 async function initStorage(): Promise<Storage> {
   try {
@@ -134,26 +126,29 @@ async function onBlock(cache: Storage, blockNumber: number) {
 }
 
 async function _reader(event: any, context: any) {
-  const length = event.pathParameters.param;
+  const param = event.pathParameters.param;
 
-  const cache = await initStorage();
-
-  const keys = _(cache.blocks).keys().map(_.toNumber).sort().value();
-  const earliest = _.first(keys);
-  const latest = _.last(keys);
-
-  const missing = [];
-  for (let i = 1; i < keys.length; i++) {
-    if (keys[i] != keys[i - missing.length - 1] + 1) {
-      missing.push(keys[i]);
-    }
-  }
-
-  return success({
-    earliest,
-    latest,
-    missing,
-  });
+  // const cache = await initStorage();
+  //
+  // const keys = _(cache.blocks).keys().map(_.toNumber).sort().value();
+  // const earliest = _.first(keys);
+  // const latest = _.last(keys);
+  //
+  // const missing = [];
+  // for (let i = 1; i < keys.length; i++) {
+  //   if (keys[i] != keys[i - missing.length - 1] + 1) {
+  //     missing.push(keys[i]);
+  //   }
+  // }
+  //
+  // return success({
+  //   earliest,
+  //   latest,
+  //   missing,
+  // });
+  const redis = createClient(6379, "base-assets-redis.u4gq8o.0001.use2.cache.amazonaws.com");
+  const ping = promisify(redis.ping).bind(redis);
+  return success(await ping());
 }
 
 // wrapper
