@@ -40,12 +40,12 @@ async function initStorage(): Promise<Storage> {
 }
 
 async function _writer(event: any, context: any) {
-  if (fs.existsSync(lock)) {
+  if (fs.existsSync(lock) && _.get(await fs.readJson(lock), ["locked"], 0) < Date.now() - 60 * 1000) {
     console.log("locked");
     return;
   }
   try {
-    fs.writeFileSync(lock, "locked");
+    await fs.writeJson(lock, { locked: Date.now() });
     console.log("running writer");
 
     const iteration = _.get(event, ["taskresult", "body", "iteration"], 0);
