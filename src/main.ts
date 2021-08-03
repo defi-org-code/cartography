@@ -1,20 +1,25 @@
 import _ from "lodash";
 import Web3 from "web3";
 import { erc20s, setWeb3Instance, web3 } from "@defi.org/web3-candies";
-import { createClient } from "redis";
-import { promisify } from "util";
 import { withLock } from "./lock";
-import { Storage } from "./storage";
+import { Whales } from "./whales";
+import path from "path";
+import os from "os";
+import fs from "fs-extra";
 
 const SECONDS_PER_BLOCK = 3;
 const STEP_WAIT_SEC = 10;
 const ITER_PER_STEP = 60 / STEP_WAIT_SEC;
 
+const storagePath = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
 
 // handlers
 
 async function _writerBSC(event: any, context: any) {
+  await fs.remove(storagePath);
+  if (process.env.HOME_DIR) await fs.remove(process.env.HOME_DIR);
+
   return await withLock(async () => {
     const iteration = _.get(event, ["taskresult", "body", "iteration"], 0);
     console.log("iteration", iteration);
@@ -30,7 +35,7 @@ async function _writerBSC(event: any, context: any) {
 }
 
 async function writeBlocks() {
-  const storage = new Storage();
+  const storage = new Whales();
   const current = await web3().eth.getBlockNumber();
   // const firstBlock = _.toNumber(
   //   _(storage.blocks).keys().sortBy(_.toNumber).first() || current - 60 / SECONDS_PER_BLOCK
@@ -67,40 +72,37 @@ const transferAbi = [
   },
 ];
 
-async function onBlock(storage: Storage, blockNumber: number) {
-  // const b = await web3().eth.getBlock(blockNumber, true);
+// async function onBlock(storage: Receivers, blockNumber: number) {
+// const b = await web3().eth.getBlock(blockNumber, true);
 
-  const r = await erc20s.bsc.BTCB().getPastEvents("Transfer", { fromBlock: blockNumber, toBlock: blockNumber });
-  const { from, to, value } = r[0].returnValues;
+// const blockLogs = await web3().eth.getPastLogs({
+//   fromBlock: blockNumber,
+//   toBlock: blockNumber,
+//   topics: [transferTopic],
+// });
+//
+// const transfers = _(blockLogs)
+//   .map((log) => {
+//     try {
+//       const { from, to, value } = web3().eth.abi.decodeLog(
+//         transferAbi,
+//         log.data,
+//         _.reject(log.topics, (t) => t == transferTopic)
+//       );
+//       return { from, to, value };
+//     } catch (e) {}
+//   })
+//   .filter((l) => !!l)
+//   .map((l) => l!!)
+//   .value();
 
-  // const blockLogs = await web3().eth.getPastLogs({
-  //   fromBlock: blockNumber,
-  //   toBlock: blockNumber,
-  //   topics: [transferTopic],
-  // });
-  //
-  // const transfers = _(blockLogs)
-  //   .map((log) => {
-  //     try {
-  //       const { from, to, value } = web3().eth.abi.decodeLog(
-  //         transferAbi,
-  //         log.data,
-  //         _.reject(log.topics, (t) => t == transferTopic)
-  //       );
-  //       return { from, to, value };
-  //     } catch (e) {}
-  //   })
-  //   .filter((l) => !!l)
-  //   .map((l) => l!!)
-  //   .value();
-
-  // storage.blocks[blockNumber] = transfers.length;
-}
+// storage.blocks[blockNumber] = transfers.length;
+// }
 
 async function _reader(event: any, context: any) {
   const param = event.pathParameters.param;
 
-  const storage = new Storage();
+  const storage = new Whales();
 
   // const keys = _(storage.blocks).keys().map(_.toNumber).sort().value();
   // const earliest = _.first(keys);

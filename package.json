@@ -17,10 +17,8 @@
   "dependencies": {
     "@defi.org/web3-candies": "1.x",
     "serverless-step-functions": "2.x",
-    "@types/redis": "2.x",
-    "@types/redis-mock": "0.x",
-    "redis": "3.x",
-    "redis-mock": "0.x"
+    "@types/ioredis": "4.x",
+    "ioredis": "4.x"
   },
   "devDependencies": {
     "@vercel/ncc": "0.x",

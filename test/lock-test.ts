@@ -25,16 +25,14 @@ describe("lock", () => {
     expect(count).eq(2);
   });
 
-  it("locks access", async () => {
-    await expectRevert(async () => {
+  it("locks access, invalid access ignored", async () => {
+    await withLock(async () => {
       await withLock(async () => {
-        await withLock(async () => {
-          count++;
-        });
         count++;
       });
+      count++;
     });
-    expect(count).eq(0);
+    expect(count).eq(1);
   });
 
   it("locks access TTL, old lock ignored", async () => {

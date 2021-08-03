@@ -7,7 +7,7 @@ export const lockPath = path.resolve(process.env.HOME_DIR || os.tmpdir(), "lock.
 export const lockTTL = 60 * 1000;
 
 export async function withLock(fn: () => Promise<any>): Promise<any> {
-  if (isLocked()) throw new Error("locked");
+  if (isLocked()) return;
   try {
     fs.writeJsonSync(lockPath, { timestamp: Date.now() });
     return await fn();
