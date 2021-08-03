@@ -18,7 +18,9 @@
     "@defi.org/web3-candies": "1.x",
     "serverless-step-functions": "2.x",
     "@types/redis": "2.x",
-    "redis": "3.x"
+    "@types/redis-mock": "0.x",
+    "redis": "3.x",
+    "redis-mock": "0.x"
   },
   "devDependencies": {
     "@vercel/ncc": "0.x",
@@ -27,9 +29,9 @@
   "scripts": {
     "prettier": "prettier --write '{contracts,src,test}/**/*.{ts,js,json,sol}'",
     "prebuild": "rm -rf dist && npm run prettier",
-    "build": "ncc build src/handler.ts --target=es5",
+    "build": "ncc build ./src/main.ts --target=es5",
     "test": "env TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' mocha -r ts-node/register 'test/**/*.ts'",
-    "writer": "node -e \"require('./dist/index.js').writer().then(console.log)\"",
+    "writerBSC": "node -e \"require('./dist/index.js').writerBSC().then(console.log)\"",
     "reader": "node -e \"require('./dist/index.js').reader({pathParameters:{param:'hello'}}).then(console.log)\"",
     "serverless-package": "REPO_SECRETS_JSON='{}' GITHUB_REPO_NAME='repo' AWS_STORAGE_ARN='arn:aws:elasticfilesystem:us-e-2:123456789012:access-point/fsap-12345678901234567' AWS_STORAGE_SG='sg' AWS_STORAGE_SUBNET='subnet' npx serverless package"
   },

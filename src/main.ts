@@ -1,6 +1,6 @@
 import _ from "lodash";
 import Web3 from "web3";
-import { setWeb3Instance, web3 } from "@defi.org/web3-candies";
+import { erc20s, setWeb3Instance, web3 } from "@defi.org/web3-candies";
 import { createClient } from "redis";
 import { promisify } from "util";
 import { withLock } from "./lock";
@@ -22,26 +22,27 @@ async function _writerBSC(event: any, context: any) {
     // setWeb3Instance(new Web3(`https://eth-mainnet.alchemyapi.io/v2/${secrets.ALCHEMY_KEY}`));
     setWeb3Instance(new Web3(`https://cold-silent-rain.bsc.quiknode.pro/${secrets.QUICKNODE_KEY}/`));
 
-    await writeBlocks();
+    // await writeBlocks();
 
-    return success({ iteration: iteration + 1 }, iteration < ITER_PER_STEP);
+    // return success({ iteration: iteration + 1 }, iteration < ITER_PER_STEP);
+    return await web3().eth.getBlockNumber();
   });
 }
 
 async function writeBlocks() {
-  const storage = await Storage.create();
+  const storage = new Storage();
   const current = await web3().eth.getBlockNumber();
-  const firstBlock = _.toNumber(
-    _(storage.blocks).keys().sortBy(_.toNumber).first() || current - 60 / SECONDS_PER_BLOCK
-  );
-  console.log("running from ", firstBlock);
-  for (let i = firstBlock; i <= current; i++) {
-    if (!storage.blocks[i]) {
-      console.log("fetching missing block", i);
-      await onBlock(storage, i);
-      await storage.save();
-    }
-  }
+  // const firstBlock = _.toNumber(
+  //   _(storage.blocks).keys().sortBy(_.toNumber).first() || current - 60 / SECONDS_PER_BLOCK
+  // );
+  // console.log("running from ", firstBlock);
+  // for (let i = firstBlock; i <= current; i++) {
+  //   if (!storage.blocks[i]) {
+  //     console.log("fetching missing block", i);
+  //     await onBlock(storage, i);
+  //     await storage.save();
+  //   }
+  // }
 }
 
 const transferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
@@ -69,54 +70,54 @@ const transferAbi = [
 async function onBlock(storage: Storage, blockNumber: number) {
   // const b = await web3().eth.getBlock(blockNumber, true);
 
-  const blockLogs = await web3().eth.getPastLogs({
-    fromBlock: blockNumber,
-    toBlock: blockNumber,
-    topics: [transferTopic],
-  });
+  const r = await erc20s.bsc.BTCB().getPastEvents("Transfer", { fromBlock: blockNumber, toBlock: blockNumber });
+  const { from, to, value } = r[0].returnValues;
 
-  const transfers = _(blockLogs)
-    .map((log) => {
-      try {
-        const { from, to, value } = web3().eth.abi.decodeLog(
-          transferAbi,
-          log.data,
-          _.reject(log.topics, (t) => t == transferTopic)
-        );
-        return { from, to, value };
-      } catch (e) {}
-    })
-    .filter((l) => !!l)
-    .map((l) => l!!)
-    .value();
+  // const blockLogs = await web3().eth.getPastLogs({
+  //   fromBlock: blockNumber,
+  //   toBlock: blockNumber,
+  //   topics: [transferTopic],
+  // });
+  //
+  // const transfers = _(blockLogs)
+  //   .map((log) => {
+  //     try {
+  //       const { from, to, value } = web3().eth.abi.decodeLog(
+  //         transferAbi,
+  //         log.data,
+  //         _.reject(log.topics, (t) => t == transferTopic)
+  //       );
+  //       return { from, to, value };
+  //     } catch (e) {}
+  //   })
+  //   .filter((l) => !!l)
+  //   .map((l) => l!!)
+  //   .value();
 
-  storage.blocks[blockNumber] = transfers.length;
+  // storage.blocks[blockNumber] = transfers.length;
 }
 
 async function _reader(event: any, context: any) {
   const param = event.pathParameters.param;
 
-  const storage = await Storage.create();
+  const storage = new Storage();
 
-  const keys = _(storage.blocks).keys().map(_.toNumber).sort().value();
-  const earliest = _.first(keys);
-  const latest = _.last(keys);
+  // const keys = _(storage.blocks).keys().map(_.toNumber).sort().value();
+  // const earliest = _.first(keys);
+  // const latest = _.last(keys);
+  //
+  // const missing = [];
+  // for (let i = 1; i < keys.length; i++) {
+  //   if (keys[i] != keys[i - missing.length - 1] + 1) {
+  //     missing.push(keys[i]);
+  //   }
+  // }
 
-  const missing = [];
-  for (let i = 1; i < keys.length; i++) {
-    if (keys[i] != keys[i - missing.length - 1] + 1) {
-      missing.push(keys[i]);
-    }
-  }
-
-  return success({
-    earliest,
-    latest,
-    missing,
-  });
-  // const redis = createClient(6379, "base-assets-redis.u4gq8o.0001.use2.cache.amazonaws.com");
-  // const ping = promisify(redis.ping).bind(redis);
-  // return success(await ping());
+  // return success({
+  //   earliest,
+  //   latest,
+  //   missing,
+  // });
 }
 
 // wrapper
