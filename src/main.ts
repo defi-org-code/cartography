@@ -35,8 +35,22 @@ async function _writerBSC(event: any, context: any) {
 }
 
 async function writeBlocks() {
-  const storage = new Whales();
-  const current = await web3().eth.getBlockNumber();
+  // const s = Date.now();
+  // const events = await erc20s.bsc.BTCB().getPastEvents("Transfer", { fromBlock: 3593318, toBlock: 3622113 });
+  //
+  // const txs = _.map(events, (e) => ({
+  //   to: _.get(e.returnValues, ["to"], "") as string,
+  //   amount: _.get(e.returnValues, ["value"], 0) as number,
+  // }));
+  // await uut.addTransfers(erc20s.bsc.BTCB().address, "20210101", txs);
+  //
+  // console.log(await uut.findWhales(erc20s.bsc.BTCB().address, "20210101"));
+  //
+  // console.log(Date.now() - s);
+  // { date: '2021-01-01T00:00:00Z', block: 3593318, timestamp: 1609459202 }
+  // { date: '2021-01-02T00:00:00Z', block: 3622113, timestamp: 1609545600 }
+  // const storage = new Whales();
+  // const current = await web3().eth.getBlockNumber();
   // const firstBlock = _.toNumber(
   //   _(storage.blocks).keys().sortBy(_.toNumber).first() || current - 60 / SECONDS_PER_BLOCK
   // );
@@ -102,7 +116,7 @@ const transferAbi = [
 async function _reader(event: any, context: any) {
   const param = event.pathParameters.param;
 
-  const storage = new Whales();
+  // const storage = new Whales();
 
   // const keys = _(storage.blocks).keys().map(_.toNumber).sort().value();
   // const earliest = _.first(keys);

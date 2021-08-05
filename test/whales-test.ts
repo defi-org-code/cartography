@@ -1,13 +1,15 @@
 import { expect } from "chai";
 import { Whales } from "../src/whales";
-import { blockNumberByDate, erc20s, setWeb3Instance } from "@defi.org/web3-candies";
+import { erc20s, setWeb3Instance } from "@defi.org/web3-candies";
 import Web3 from "web3";
 import _ from "lodash";
 
 function config() {
   return require("../.config.json");
 }
-const BSC_URL = `https://cold-silent-rain.bsc.quiknode.pro/${config().quicknodeKey}/`;
+
+const BSC_URL = `https://cold-silent-rain.bsc.quiknode.pro/${config().quicknodeKey2}/`;
+// const BSC_URL = `https://long-thrumming-dream.bsc.quiknode.pro/${config().quicknodeKey}/`;
 
 describe("whales", () => {
   let uut: Whales;
@@ -15,33 +17,40 @@ describe("whales", () => {
   beforeEach(async () => {
     setWeb3Instance(new Web3(BSC_URL));
     uut = new Whales("bsc", true);
+    const keys = await uut.redis.keys(`${Whales.prefix()}:*`);
+    await uut.redis.del(keys);
   });
 
   afterEach(async () => {
     await uut.saveAndClose();
   });
 
-  it.only("whales of token for day by total amount received", async () => {
-    // await uut.addTransfers(erc20s.bsc.BTCB().address, "20210101", [
-    //   { to: "0x1", amount: 100 },
-    //   { to: "0x2", amount: 200 },
-    //   { to: "0x3", amount: 300 },
-    //   { to: "0x2", amount: 300 },
-    // ]);
-    // expect(await uut.findWhales(erc20s.bsc.BTCB().address, "20210101")).deep.eq(["0x2", "0x3", "0x1"]);
-    const s = Date.now();
-    const events = await erc20s.bsc.BTCB().getPastEvents("Transfer", { fromBlock: 3593318, toBlock: 3622113 });
+  it("whales of token for day by total amount received", async () => {
+    await uut.addTransfers(erc20s.bsc.BTCB().address, "20210101", [
+      { to: "0x1", value: 100, blockNumber: 1 },
+      { to: "0x2", value: 200, blockNumber: 1 },
+      { to: "0x3", value: 300, blockNumber: 1 },
+      { to: "0x2", value: 300, blockNumber: 1 },
+    ]);
+    expect(await uut.findWhales(erc20s.bsc.BTCB().address, "20210101")).deep.eq(["0x2", "0x3", "0x1"]);
+  });
 
-    const txs = _.map(events, (e) => ({
-      to: _.get(e.returnValues, ["to"], "") as string,
-      amount: _.get(e.returnValues, ["value"], 0) as number,
-    }));
-    await uut.addTransfers(erc20s.bsc.BTCB().address, "20210101", txs);
+  it("chunked", async () => {
+    expect(Whales.chunkBlocks(100, 200, 100)).deep.eq([{ fromBlock: 100, toBlock: 200 }]);
+    expect(Whales.chunkBlocks(100, 200, 50)).deep.eq([
+      { fromBlock: 100, toBlock: 150 },
+      { fromBlock: 151, toBlock: 200 },
+    ]);
+    expect(Whales.chunkBlocks(100, 200, 1000)).deep.eq([{ fromBlock: 100, toBlock: 200 }]);
+    expect(Whales.chunkBlocks(0, 100_000, 500))
+      .length(200)
+      .deep.include({ fromBlock: 0, toBlock: 500 })
+      .include({ fromBlock: 501, toBlock: 1001 })
+      .include({ fromBlock: 1002, toBlock: 1502 });
+    expect(_.last(Whales.chunkBlocks(0, 100_000, 500))).deep.eq({ fromBlock: 99_699, toBlock: 100_000 });
+  });
 
-    console.log(await uut.findWhales(erc20s.bsc.BTCB().address, "20210101"));
-
-    console.log(Date.now() - s);
-    // { date: '2021-01-01T00:00:00Z', block: 3593318, timestamp: 1609459202 }
-    // { date: '2021-01-02T00:00:00Z', block: 3622113, timestamp: 1609545600 }
-  }).timeout("5m");
+  it.only("daily block numbers", async () => {
+    await uut.cacheBlockNumbersByDay();
+  });
 });

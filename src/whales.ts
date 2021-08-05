@@ -1,7 +1,15 @@
 import _ from "lodash";
 import Redis from "ioredis";
+import { blockNumbersEveryDate } from "@defi.org/web3-candies";
 
-const PREFIX = "cartography:whales";
+const BLOCK_BATCH_SIZE = 512;
+const MAX_DAYS_REQUEST = 30;
+
+export type TransferEvent = {
+  blockNumber: number;
+  to: string;
+  value: number;
+};
 
 export class Whales {
   redis: Redis.Redis;
@@ -11,7 +19,6 @@ export class Whales {
   }
 
   async saveAndClose() {
-    await this.redis.save();
     await this.redis.quit();
   }
 
@@ -22,22 +29,80 @@ export class Whales {
     // mark added blocks
   }
 
+  // async getMissingBlocks() {
+  //   const latest = await web3().eth.getBlockNumber();
+  //   const now = new Date();
+  //   const day = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  //   const fromBlock = (await blockNumberByDate(day)).block;
+  //   const chunks = Whales.chunkBlocks(fromBlock, latest, BLOCK_BATCH_SIZE);
+  //
+  //   const events = _.flatten(
+  //     await Promise.all(
+  //       _.map(chunks, (c) =>
+  //         erc20s.bsc.BTCB().getPastEvents("Transfer", { fromBlock: c.fromBlock, toBlock: c.toBlock })
+  //       )
+  //     )
+  //   );
+  //
+  //   const transfers = events.map((e) => ({
+  //     to: e.returnValues.to as string,
+  //     value: to3(e.returnValues.value, 18).toNumber(),
+  //     blockNumber: e.blockNumber,
+  //   }));
+  //   await this.addTransfers(erc20s.bsc.BTCB().address, day.toISOString().split("T")[0], transfers);
+  // }
+
   async findWhales(token: string, day: string, count: number = 10) {
-    const key = this.kDailyTransfers(token, day);
-    return await this.redis.send_command("ZRANGE", key, "+inf", 1, "BYSCORE", "REV", "LIMIT", 0, count);
+    const key = Whales.kDailyTransfers(token, day);
+    return await this.redis.send_command("ZRANGE", key, "+inf", 0, "BYSCORE", "REV", "LIMIT", 0, count);
   }
 
   async addTransfers(token: string, day: string, transfers: TransferEvent[]) {
-    const key = this.kDailyTransfers(token, day);
-    await Promise.all(_.map(transfers, (t) => this.redis.send_command("ZINCRBY", key, t.amount, t.to)));
+    const key = Whales.kDailyTransfers(token, day);
+    await Promise.all(_.map(transfers, (t) => this.redis.send_command("ZINCRBY", key, t.value, t.to)));
   }
 
-  private kDailyTransfers(token: string, day: string) {
-    return `${PREFIX}:${this.network}:transfers:daily:${token}:${day}`.toLowerCase();
+  // async splitByDays(transfers: TransferEvent[]) {
+  //   blockNumbersEveryDate("days", )
+  //   _(transfers).map((t) => t.blockNumber);
+  // }
+
+  async cacheBlockNumbersByDay() {
+    const key = Whales.kBlockNumberByDay();
+    const today = Whales.dayUTC(Date.now());
+    const [, lastIndexedDay] = await this.redis.send_command("ZRANGE", key, 0, 0, "REV", "WITHSCORES");
+
+    const from = lastIndexedDay
+      ? Whales.dayUTC(lastIndexedDay)
+      : Whales.dayUTC(today - 1000 * 60 * 60 * 24 * MAX_DAYS_REQUEST);
+    if (from == today) return;
+
+    const blockInfos = await blockNumbersEveryDate("days", from, today);
+    await Promise.all(_.map(blockInfos, (b) => this.redis.send_command("ZADD", key, Date.parse(b.date), b.block)));
+  }
+
+  static chunkBlocks(from: number, to: number, size: number) {
+    const result = [];
+    for (let i = from; i < to; i += size + 1) {
+      result.push({ fromBlock: i, toBlock: Math.min(i + size, to) });
+    }
+    return result;
+  }
+
+  static prefix() {
+    return "cartography:whales";
+  }
+
+  static kBlockNumberByDay() {
+    return `${this.prefix()}:blocknumber-by-day`.toLowerCase();
+  }
+
+  static kDailyTransfers(token: string, day: string) {
+    return `${this.prefix()}:token-receivers:daily:${token}:${day}`.toLowerCase();
+  }
+
+  static dayUTC(timestamp: number) {
+    const date = new Date(timestamp);
+    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
   }
 }
-
-export type TransferEvent = {
-  to: string;
-  amount: number;
-};
