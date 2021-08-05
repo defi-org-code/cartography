@@ -1,6 +1,7 @@
 import _ from "lodash";
 import Redis from "ioredis";
 import { blockNumbersEveryDate } from "@defi.org/web3-candies";
+import { dayUTC } from "./utils";
 
 const BLOCK_BATCH_SIZE = 512;
 const MAX_DAYS_REQUEST = 30;
@@ -69,12 +70,10 @@ export class Whales {
 
   async cacheBlockNumbersByDay() {
     const key = Whales.kBlockNumberByDay();
-    const today = Whales.dayUTC(Date.now());
+    const today = dayUTC(Date.now());
     const [, lastIndexedDay] = await this.redis.send_command("ZRANGE", key, 0, 0, "REV", "WITHSCORES");
 
-    const from = lastIndexedDay
-      ? Whales.dayUTC(lastIndexedDay)
-      : Whales.dayUTC(today - 1000 * 60 * 60 * 24 * MAX_DAYS_REQUEST);
+    const from = lastIndexedDay ? dayUTC(lastIndexedDay) : dayUTC(today - 1000 * 60 * 60 * 24 * MAX_DAYS_REQUEST);
     if (from == today) return;
 
     const blockInfos = await blockNumbersEveryDate("days", from, today);
@@ -99,10 +98,5 @@ export class Whales {
 
   static kDailyTransfers(token: string, day: string) {
     return `${this.prefix()}:token-receivers:daily:${token}:${day}`.toLowerCase();
-  }
-
-  static dayUTC(timestamp: number) {
-    const date = new Date(timestamp);
-    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
   }
 }

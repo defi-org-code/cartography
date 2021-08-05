@@ -17,8 +17,6 @@ describe("whales", () => {
   beforeEach(async () => {
     setWeb3Instance(new Web3(BSC_URL));
     uut = new Whales("bsc", true);
-    const keys = await uut.redis.keys(`${Whales.prefix()}:*`);
-    await uut.redis.del(keys);
   });
 
   afterEach(async () => {
@@ -48,9 +46,5 @@ describe("whales", () => {
       .include({ fromBlock: 501, toBlock: 1001 })
       .include({ fromBlock: 1002, toBlock: 1502 });
     expect(_.last(Whales.chunkBlocks(0, 100_000, 500))).deep.eq({ fromBlock: 99_699, toBlock: 100_000 });
-  });
-
-  it.only("daily block numbers", async () => {
-    await uut.cacheBlockNumbersByDay();
   });
 });
