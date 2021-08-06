@@ -8,8 +8,6 @@ import os from "os";
 import fs from "fs-extra";
 
 const SECONDS_PER_BLOCK = 3;
-const STEP_WAIT_SEC = 10;
-const ITER_PER_STEP = 60 / STEP_WAIT_SEC;
 
 const storagePath = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
@@ -21,15 +19,11 @@ async function _writerBSC(event: any, context: any) {
   if (process.env.HOME_DIR) await fs.remove(process.env.HOME_DIR);
 
   return await withLock(async () => {
-    const iteration = _.get(event, ["taskresult", "body", "iteration"], 0);
-    console.log("iteration", iteration);
-
     // setWeb3Instance(new Web3(`https://eth-mainnet.alchemyapi.io/v2/${secrets.ALCHEMY_KEY}`));
     setWeb3Instance(new Web3(`https://cold-silent-rain.bsc.quiknode.pro/${secrets.QUICKNODE_KEY}/`));
 
     // await writeBlocks();
 
-    // return success({ iteration: iteration + 1 }, iteration < ITER_PER_STEP);
     return await web3().eth.getBlockNumber();
   });
 }
@@ -138,11 +132,10 @@ async function _reader(event: any, context: any) {
 
 // wrapper
 
-function success(result: any, _continue?: boolean) {
+function success(result: any) {
   return {
     statusCode: 200,
     body: JSON.stringify(result),
-    continue: _continue,
   };
 }
 

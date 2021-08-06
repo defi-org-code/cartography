@@ -11,14 +11,21 @@ export function dayUTC(timestamp: number) {
  * @param current - the present state, ex. current block
  * @param earliestIndex - most historical cached or 0, ex. earliest block data cached
  * @param latestIndex - most recent cached or 0, ex. latest block data cached
+ * @param lowerBound - max history total. will not return lower than lowerBound
+ * @param unit - interval step, ex. 1 block, 1000 millis etc
+ *
+ * @returns {from,to} or undefined
  */
-export function findMissingInterval(
+export function findIntervalToCache(
   length: number,
   current: number,
   earliestIndex: number = 0,
-  latestIndex: number = 0
+  latestIndex: number = 0,
+  lowerBound: number = 0,
+  unit: number = 1
 ) {
-  const to = latestIndex != current ? current : Math.max(0, earliestIndex - 1);
-  const from = (latestIndex || current) != current ? latestIndex + 1 : Math.max(0, to - length);
+  const to = latestIndex != current ? current : Math.max(lowerBound, earliestIndex - unit);
+  const from = (latestIndex || current) != current ? latestIndex + unit : Math.max(lowerBound, to - length);
+  if (from == to && from == lowerBound) return undefined;
   return { from, to };
 }

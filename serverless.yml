@@ -15,40 +15,14 @@ package:
     - "dist/*"
     - "dist/*/**"
 
-stepFunctions:
-  stateMachines:
-    writerBSC_wakeup:
-      events:
-        - schedule: rate(1 minute)
-      definition:
-        StartAt: Iterator
-        States:
-          Iterator:
-            Type: Task
-            Resource:
-              Fn::GetAtt: [writerBSC, Arn]
-            ResultPath: "$.taskresult"
-            Next: IsCountReached
-          IsCountReached:
-            Type: Choice
-            Choices:
-              - Variable: "$.taskresult.continue"
-                BooleanEquals: true
-                Next: Wait
-            Default: Done
-          Wait:
-            Type: Wait
-            Seconds: 10
-            Next: Iterator
-          Done:
-            Type: Pass
-            End: true
 
 functions:
   writerBSC:
     handler: dist/index.writerBSC
     fileSystemConfig: ${file(./serverless-fs.yml)}
-    timeout: 300
+    timeout: 60
+    events:
+      - schedule: rate(1 minute)
   reader:
     handler: dist/index.reader
     fileSystemConfig: ${file(./serverless-fs.yml)}

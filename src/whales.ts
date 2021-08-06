@@ -1,10 +1,10 @@
 import _ from "lodash";
 import Redis from "ioredis";
 import { blockNumbersEveryDate } from "@defi.org/web3-candies";
-import { dayUTC } from "./utils";
+import { dayUTC, findIntervalToCache } from "./utils";
 
 const BLOCK_BATCH_SIZE = 512;
-const MAX_DAYS_REQUEST = 30;
+const MAX_DAYS_BACK = 30;
 
 export type TransferEvent = {
   blockNumber: number;
@@ -23,7 +23,8 @@ export class Whales {
     await this.redis.quit();
   }
 
-  async execute(token: string, day: string) {
+  async execute() {
+    await this.cacheBlockNumbersByDay();
     // find missing blocks windows (missing per day): fromBlock, toBlock
     // token.getPastEvents
     // addTransfers
@@ -70,13 +71,26 @@ export class Whales {
 
   async cacheBlockNumbersByDay() {
     const key = Whales.kBlockNumberByDay();
+
+    const MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
+    const length = MILLIS_PER_DAY * MAX_DAYS_BACK;
     const today = dayUTC(Date.now());
-    const [, lastIndexedDay] = await this.redis.send_command("ZRANGE", key, 0, 0, "REV", "WITHSCORES");
+    const lowerBound = dayUTC(today - length);
+    const [, earliestIndexedDay] = await this.redis.send_command("ZRANGE", key, 0, 0, "WITHSCORES");
+    const [, latestIndexedDay] = await this.redis.send_command("ZRANGE", key, 0, 0, "REV", "WITHSCORES");
 
-    const from = lastIndexedDay ? dayUTC(lastIndexedDay) : dayUTC(today - 1000 * 60 * 60 * 24 * MAX_DAYS_REQUEST);
-    if (from == today) return;
+    const missing = findIntervalToCache(
+      length,
+      today,
+      earliestIndexedDay,
+      latestIndexedDay,
+      lowerBound,
+      MILLIS_PER_DAY
+    );
 
-    const blockInfos = await blockNumbersEveryDate("days", from, today);
+    if (!missing) return;
+
+    const blockInfos = await blockNumbersEveryDate("days", missing.from, missing.to);
     await Promise.all(_.map(blockInfos, (b) => this.redis.send_command("ZADD", key, Date.parse(b.date), b.block)));
   }
 
