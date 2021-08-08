@@ -7,5 +7,9 @@ export const BSC_URL = `https://cold-silent-rain.bsc.quiknode.pro/${secrets.QUIC
 export const REDIS_URL = "base-assets-redis.u4gq8o.0001.use2.cache.amazonaws.com";
 
 function config() {
-  return require("../.config.json");
+  try {
+    return require("../.config.json");
+  } catch (e) {
+    return {};
+  }
 }

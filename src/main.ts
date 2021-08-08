@@ -33,6 +33,7 @@ async function _indexerBSC(event: any, context: any) {
 
 async function _info(event: any, context: any) {
   const token = erc20s.bsc.BTCB();
+
   const blocks = new Blocks(redis, "bsc");
   const transfers = new Transfers(redis, "bsc", blocks, token);
 
