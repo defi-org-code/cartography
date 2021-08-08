@@ -12,7 +12,7 @@ import { withLock } from "./lock";
 const storagePath = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 
 setWeb3Instance(new Web3(BSC_URL));
-const redis = new Redis(REDIS_URL);
+const redis = new Redis(process.env.HOME_DIR ? REDIS_URL : undefined);
 
 // handlers
 
