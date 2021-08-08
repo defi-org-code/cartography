@@ -4,7 +4,7 @@ import os from "os";
 import fs from "fs-extra";
 import Redis from "ioredis";
 import { erc20s, setWeb3Instance } from "@defi.org/web3-candies";
-import { BSC_URL } from "./consts";
+import { BSC_URL, REDIS_URL } from "./consts";
 import { Transfers } from "./indexers/transfers";
 import { Blocks } from "./indexers/blocks";
 import { withLock } from "./lock";
@@ -12,7 +12,7 @@ import { withLock } from "./lock";
 const storagePath = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 
 setWeb3Instance(new Web3(BSC_URL));
-const redis = new Redis();
+const redis = new Redis(REDIS_URL);
 
 // handlers
 
