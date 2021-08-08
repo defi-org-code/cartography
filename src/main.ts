@@ -1,138 +1,84 @@
-import _ from "lodash";
 import Web3 from "web3";
-import { erc20s, setWeb3Instance, web3 } from "@defi.org/web3-candies";
-import { withLock } from "./lock";
-import { Whales } from "./whales";
 import path from "path";
 import os from "os";
 import fs from "fs-extra";
-
-const SECONDS_PER_BLOCK = 3;
+import Redis from "ioredis";
+import { erc20s, setWeb3Instance } from "@defi.org/web3-candies";
+import { BSC_URL } from "./consts";
+import { Transfers } from "./indexers/transfers";
+import { Blocks } from "./indexers/blocks";
+import { withLock } from "./lock";
 
 const storagePath = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
-const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
+
+setWeb3Instance(new Web3(BSC_URL));
+const redis = new Redis();
 
 // handlers
 
-async function _writerBSC(event: any, context: any) {
-  await fs.remove(storagePath);
-  if (process.env.HOME_DIR) await fs.remove(process.env.HOME_DIR);
+async function _indexerBSC(event: any, context: any) {
+  await withLock(async () => {
+    await fs.remove(storagePath);
 
-  return await withLock(async () => {
-    // setWeb3Instance(new Web3(`https://eth-mainnet.alchemyapi.io/v2/${secrets.ALCHEMY_KEY}`));
-    setWeb3Instance(new Web3(`https://cold-silent-rain.bsc.quiknode.pro/${secrets.QUICKNODE_KEY}/`));
+    const token = erc20s.bsc.BTCB();
+    const blocks = new Blocks(redis, "bsc");
+    const transfers = new Transfers(redis, "bsc", blocks, token);
 
-    // await writeBlocks();
+    await blocks.updateIndex();
+    await transfers.updateIndex();
+  });
 
-    return await web3().eth.getBlockNumber();
+  return success();
+}
+
+async function _info(event: any, context: any) {
+  const token = erc20s.bsc.BTCB();
+  const blocks = new Blocks(redis, "bsc");
+  const transfers = new Transfers(redis, "bsc", blocks, token);
+
+  return success({
+    bsc: {
+      blocks: {
+        latest: await blocks.latestIndexed(),
+        earliest: await blocks.earliestIndexed(),
+      },
+      transfers: {
+        [token.name]: {
+          earliest: await transfers.earliestDayIndexed(),
+        },
+      },
+      redis: {
+        info: await redis.info(),
+      },
+    },
   });
 }
 
-async function writeBlocks() {
-  // const s = Date.now();
-  // const events = await erc20s.bsc.BTCB().getPastEvents("Transfer", { fromBlock: 3593318, toBlock: 3622113 });
-  //
-  // const txs = _.map(events, (e) => ({
-  //   to: _.get(e.returnValues, ["to"], "") as string,
-  //   amount: _.get(e.returnValues, ["value"], 0) as number,
-  // }));
-  // await uut.addTransfers(erc20s.bsc.BTCB().address, "20210101", txs);
-  //
-  // console.log(await uut.findWhales(erc20s.bsc.BTCB().address, "20210101"));
-  //
-  // console.log(Date.now() - s);
-  // { date: '2021-01-01T00:00:00Z', block: 3593318, timestamp: 1609459202 }
-  // { date: '2021-01-02T00:00:00Z', block: 3622113, timestamp: 1609545600 }
-  // const storage = new Whales();
-  // const current = await web3().eth.getBlockNumber();
-  // const firstBlock = _.toNumber(
-  //   _(storage.blocks).keys().sortBy(_.toNumber).first() || current - 60 / SECONDS_PER_BLOCK
-  // );
-  // console.log("running from ", firstBlock);
-  // for (let i = firstBlock; i <= current; i++) {
-  //   if (!storage.blocks[i]) {
-  //     console.log("fetching missing block", i);
-  //     await onBlock(storage, i);
-  //     await storage.save();
-  //   }
-  // }
+async function _blockRange(event: any, context: any) {
+  const { network, date } = event.pathParameters;
+  const parsed = Date.parse(date);
+  const blocks = new Blocks(redis, network);
+  return success(await blocks.blockRangeForDay(parsed));
 }
 
-const transferTopic = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
-const transferAbi = [
-  {
-    indexed: true,
-    internalType: "address",
-    name: "from",
-    type: "address",
-  },
-  {
-    indexed: true,
-    internalType: "address",
-    name: "to",
-    type: "address",
-  },
-  {
-    indexed: false,
-    internalType: "uint256",
-    name: "value",
-    type: "uint256",
-  },
-];
+async function _transfers(event: any, context: any) {
+  const { network, date } = event.pathParameters;
 
-// async function onBlock(storage: Receivers, blockNumber: number) {
-// const b = await web3().eth.getBlock(blockNumber, true);
+  const token = erc20s.bsc.BTCB();
+  const blocks = new Blocks(redis, network);
+  const transfers = new Transfers(redis, network, blocks, token);
 
-// const blockLogs = await web3().eth.getPastLogs({
-//   fromBlock: blockNumber,
-//   toBlock: blockNumber,
-//   topics: [transferTopic],
-// });
-//
-// const transfers = _(blockLogs)
-//   .map((log) => {
-//     try {
-//       const { from, to, value } = web3().eth.abi.decodeLog(
-//         transferAbi,
-//         log.data,
-//         _.reject(log.topics, (t) => t == transferTopic)
-//       );
-//       return { from, to, value };
-//     } catch (e) {}
-//   })
-//   .filter((l) => !!l)
-//   .map((l) => l!!)
-//   .value();
-
-// storage.blocks[blockNumber] = transfers.length;
-// }
-
-async function _reader(event: any, context: any) {
-  const param = event.pathParameters.param;
-
-  // const storage = new Whales();
-
-  // const keys = _(storage.blocks).keys().map(_.toNumber).sort().value();
-  // const earliest = _.first(keys);
-  // const latest = _.last(keys);
-  //
-  // const missing = [];
-  // for (let i = 1; i < keys.length; i++) {
-  //   if (keys[i] != keys[i - missing.length - 1] + 1) {
-  //     missing.push(keys[i]);
-  //   }
-  // }
-
-  // return success({
-  //   earliest,
-  //   latest,
-  //   missing,
-  // });
+  return success({
+    [token.name]: {
+      daily: await transfers.topTokenTransfersReceiversDaily(date),
+      allTime: await transfers.topTokenTransfersReceiversAllTime(),
+    },
+  });
 }
 
 // wrapper
 
-function success(result: any) {
+async function success(result: any = "OK") {
   return {
     statusCode: 200,
     body: JSON.stringify(result),
@@ -149,10 +95,14 @@ async function catchErrors(this: any, event: any, context: any) {
       statusCode: 500,
       body: message,
     };
+  } finally {
+    await redis.quit();
   }
 }
 
 // exports
 
-export const reader = catchErrors.bind(_reader);
-export const writerBSC = catchErrors.bind(_writerBSC);
+export const indexerBSC = catchErrors.bind(_indexerBSC);
+export const info = catchErrors.bind(_info);
+export const blockRange = catchErrors.bind(_blockRange);
+export const transfers = catchErrors.bind(_transfers);

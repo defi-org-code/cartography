@@ -1,10 +1,10 @@
+import _ from "lodash";
 import path from "path";
 import os from "os";
 import fs from "fs-extra";
-import _ from "lodash";
 
 export const lockPath = path.resolve(process.env.HOME_DIR || os.tmpdir(), "lock.json");
-export const lockTTL = 60 * 1000;
+export const lockTTL = 10 * 60 * 1000;
 
 export async function withLock(fn: () => Promise<any>): Promise<any> {
   if (isLocked()) return;

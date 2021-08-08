@@ -1,6 +1,10 @@
-export function dayUTC(timestamp: number) {
+export function dayUTC(timestamp: number = Date.now()) {
   const date = new Date(timestamp);
   return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+}
+
+export function addDaysUTC(add: number, timestamp: number = Date.now()) {
+  return dayUTC(new Date(timestamp).setUTCDate(new Date(timestamp).getUTCDate() + add));
 }
 
 /**
@@ -28,4 +32,16 @@ export function findIntervalToCache(
   const from = (latestIndex || current) != current ? latestIndex + unit : Math.max(lowerBound, to - length);
   if (from == to && from == lowerBound) return undefined;
   return { from, to };
+}
+
+/**
+ * split from->to into intervals of size (inclusive), jumping by unit.
+ * the last interval is <= size
+ */
+export function chunkIntervals(from: number, to: number, size: number, unit: number = 1) {
+  const result = [];
+  for (let i = from; i < to; i += size + unit) {
+    result.push({ from: i, to: Math.min(i + size, to) });
+  }
+  return result;
 }
