@@ -30,12 +30,12 @@ functions:
           path: info
           method: get
           cors: true
-  block:
-    handler: dist/index.block
+  blockRange:
+    handler: dist/index.blockRange
     fileSystemConfig: ${file(./serverless-fs.yml)}
     events:
       - http:
-          path: block/{network}/{date}
+          path: blockRange/{network}/{date}
           method: get
           cors: true
   transfers:
