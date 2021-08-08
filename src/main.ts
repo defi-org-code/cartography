@@ -96,8 +96,6 @@ async function catchErrors(this: any, event: any, context: any) {
       statusCode: 500,
       body: message,
     };
-  } finally {
-    await redis.quit();
   }
 }
 
