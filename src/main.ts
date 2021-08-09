@@ -1,79 +1,69 @@
 import Web3 from "web3";
-import path from "path";
-import os from "os";
-import fs from "fs-extra";
 import Redis from "ioredis";
-import { erc20s, setWeb3Instance } from "@defi.org/web3-candies";
+import { erc20s, setWeb3Instance, web3 } from "@defi.org/web3-candies";
 import { BSC_URL, REDIS_URL } from "./consts";
 import { Transfers } from "./indexers/transfers";
-import { Blocks } from "./indexers/blocks";
 import { withLock } from "./lock";
 
-const storagePath = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
-
-setWeb3Instance(new Web3(BSC_URL));
-const redis = new Redis(process.env.HOME_DIR ? REDIS_URL : undefined);
+// const storagePath = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
 
 // handlers
 
 async function _indexerBSC(event: any, context: any) {
-  await withLock(async () => {
-    await fs.remove(storagePath);
+  return await withLock(async () => {
+    await withState(async (redis) => {
+      const token = erc20s.bsc.WBNB();
+      const transfers = new Transfers(redis, "bsc", token);
 
-    const token = erc20s.bsc.BTCB();
-    const blocks = new Blocks(redis, "bsc");
-    const transfers = new Transfers(redis, "bsc", blocks, token);
+      await transfers.updateIndex();
+    });
 
-    await blocks.updateIndex();
-    await transfers.updateIndex();
+    return success();
   });
-
-  return success();
 }
 
 async function _info(event: any, context: any) {
-  const token = erc20s.bsc.BTCB();
+  return await withState(async (redis) => {
+    const token = erc20s.bsc.BTCB();
 
-  const blocks = new Blocks(redis, "bsc");
-  const transfers = new Transfers(redis, "bsc", blocks, token);
+    const transfers = new Transfers(redis, "bsc", token);
 
-  return success({
-    bsc: {
-      blocks: {
-        latest: await blocks.latestIndexed(),
-        earliest: await blocks.earliestIndexed(),
-      },
-      transfers: {
-        [token.name]: {
-          earliest: await transfers.earliestDayIndexed(),
+    return success({
+      bsc: {
+        transfers: {
+          [token.name]: {
+            indexed: await transfers.indexedBounds(),
+            next: await transfers.nextInterval(await web3().eth.getBlockNumber()),
+          },
+        },
+        redis: {
+          info: await redis.info(),
         },
       },
-      redis: {
-        info: await redis.info(),
+    });
+  });
+}
+
+async function _transfers(event: any, context: any) {
+  return await withState(async (redis) => {
+    const { network } = event.pathParameters;
+
+    const token = erc20s.bsc.BTCB();
+    const transfers = new Transfers(redis, network, token);
+
+    return success({
+      [token.name]: {
+        // daily: await transfers.topTokenTransfersReceiversDaily(date),
+        allTime: await transfers.topTokenTransfersReceiversAllTime(),
       },
-    },
+    });
   });
 }
 
 async function _blockRange(event: any, context: any) {
-  const { network, date } = event.pathParameters;
-  const parsed = Date.parse(date);
-  const blocks = new Blocks(redis, network);
-  return success(await blocks.blockRangeForDay(parsed));
-}
-
-async function _transfers(event: any, context: any) {
-  const { network, date } = event.pathParameters;
-
-  const token = erc20s.bsc.BTCB();
-  const blocks = new Blocks(redis, network);
-  const transfers = new Transfers(redis, network, blocks, token);
-
-  return success({
-    [token.name]: {
-      daily: await transfers.topTokenTransfersReceiversDaily(date),
-      allTime: await transfers.topTokenTransfersReceiversAllTime(),
-    },
+  return await withState(async (redis) => {
+    // const { network, date } = event.pathParameters;
+    return success();
   });
 }
 
@@ -99,9 +89,19 @@ async function catchErrors(this: any, event: any, context: any) {
   }
 }
 
+async function withState(fn: (redis: Redis.Redis) => Promise<any>) {
+  setWeb3Instance(new Web3(BSC_URL));
+  const redis = new Redis(process.env.HOME_DIR ? REDIS_URL : undefined);
+  try {
+    return await fn(redis);
+  } finally {
+    await redis.quit();
+  }
+}
+
 // exports
 
 export const indexerBSC = catchErrors.bind(_indexerBSC);
 export const info = catchErrors.bind(_info);
-export const blockRange = catchErrors.bind(_blockRange);
 export const transfers = catchErrors.bind(_transfers);
+export const blockRange = catchErrors.bind(_blockRange);

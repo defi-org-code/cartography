@@ -5,9 +5,7 @@ class Static extends Indexer {
     return "cartography:static";
   }
 
-  async updateIndex() {
-    await this.redis.send_command("HMSET");
-  }
+  async updateIndex() {}
 
   kTokens() {
     return `${this.prefix()}:tokens`;

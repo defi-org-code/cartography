@@ -2,7 +2,9 @@ import _ from "lodash";
 import { web3 } from "@defi.org/web3-candies";
 import { addDaysUTC, dayUTC, findIntervalToCache } from "../utils";
 import { Indexer } from "./indexer";
-import { MAX_DAYS_BACK, MILLIS_PER_DAY } from "../consts";
+import { MAX_DAYS_BACK } from "../consts";
+
+const millisPerDay = 1000 * 60 * 60 * 24;
 
 export class Blocks extends Indexer {
   prefix() {
@@ -11,7 +13,7 @@ export class Blocks extends Indexer {
 
   async updateIndex() {
     const key = this.kBlockNumberByDay();
-    const length = MILLIS_PER_DAY * MAX_DAYS_BACK;
+    const length = millisPerDay * MAX_DAYS_BACK;
     const today = dayUTC();
     const lowerBound = dayUTC(today - length);
 
@@ -21,7 +23,7 @@ export class Blocks extends Indexer {
       await this.earliestIndexed(),
       await this.latestIndexed(),
       lowerBound,
-      MILLIS_PER_DAY
+      millisPerDay
     );
 
     if (!missing) return;

@@ -18,7 +18,7 @@ describe("blocks indexer e2e", () => {
     await uut.redis.quit();
   });
 
-  it("blocknumber at start of UTC day", async () => {
+  xit("blocknumber at start of UTC day", async () => {
     await uut.updateIndex();
     const result = await uut.getFirstBlockOfUTCDay();
     const blockBefore = dayUTC((await block(result - 1)).timestamp * 1000);
@@ -27,7 +27,7 @@ describe("blocks indexer e2e", () => {
     expect(blockAfter).eq(dayUTC());
   });
 
-  it("blocks for day", async () => {
+  xit("blocks for day", async () => {
     const yesterday = addDaysUTC(-1);
     const result = await uut.blockRangeForDay(yesterday);
     expect(dayUTC((await block(result.from)).timestamp * 1000)).eq(yesterday);
