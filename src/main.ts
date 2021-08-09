@@ -1,6 +1,7 @@
+import _ from "lodash";
 import Web3 from "web3";
 import Redis from "ioredis";
-import { erc20s, setWeb3Instance, web3 } from "@defi.org/web3-candies";
+import { erc20, erc20s, setWeb3Instance, web3 } from "@defi.org/web3-candies";
 import { BSC_URL, REDIS_URL } from "./consts";
 import { Transfers } from "./indexers/transfers";
 import { withLock } from "./lock";
@@ -12,10 +13,18 @@ import { withLock } from "./lock";
 async function _indexerBSC(event: any, context: any) {
   return await withLock(async () => {
     await withState(async (redis) => {
-      const token = erc20s.bsc.WBNB();
-      const transfers = new Transfers(redis, "bsc", token);
-
-      await transfers.updateIndex();
+      const network = "bsc";
+      const baseAssets = [
+        erc20s.bsc.WBNB(),
+        erc20s.bsc.BTCB(),
+        erc20s.bsc.BUSD(),
+        erc20s.bsc.USDC(),
+        erc20s.bsc.USDT(),
+      ];
+      for (const token of baseAssets) {
+        const transfers = new Transfers(redis, network, token);
+        await transfers.updateIndex();
+      }
     });
 
     return success();
@@ -24,18 +33,20 @@ async function _indexerBSC(event: any, context: any) {
 
 async function _info(event: any, context: any) {
   return await withState(async (redis) => {
-    const token = erc20s.bsc.BTCB();
-
-    const transfers = new Transfers(redis, "bsc", token);
+    const network = "bsc";
+    const baseAssets = [erc20s.bsc.WBNB(), erc20s.bsc.BTCB(), erc20s.bsc.BUSD(), erc20s.bsc.USDC(), erc20s.bsc.USDT()];
+    const transfers = {} as any;
+    for (const token of baseAssets) {
+      const ts = new Transfers(redis, network, token);
+      transfers[token.name] = {
+        indexed: await ts.indexedBounds(),
+        next: await ts.nextInterval(await web3().eth.getBlockNumber()),
+      };
+    }
 
     return success({
       bsc: {
-        transfers: {
-          [token.name]: {
-            indexed: await transfers.indexedBounds(),
-            next: await transfers.nextInterval(await web3().eth.getBlockNumber()),
-          },
-        },
+        transfers,
         redis: {
           info: await redis.info(),
         },
@@ -46,9 +57,13 @@ async function _info(event: any, context: any) {
 
 async function _transfers(event: any, context: any) {
   return await withState(async (redis) => {
-    const { network } = event.pathParameters;
-
-    const token = erc20s.bsc.BTCB();
+    const { network, tokenAddress } = event.pathParameters;
+    const baseAssets = [erc20s.bsc.WBNB(), erc20s.bsc.BTCB(), erc20s.bsc.BUSD(), erc20s.bsc.USDC(), erc20s.bsc.USDT()];
+    let token = _.find(baseAssets, (t) => t.address.toLowerCase() == tokenAddress.toLowerCase());
+    if (!token) {
+      token = _.find(baseAssets, (t) => t.name.toLowerCase().replace("$", "") == tokenAddress.toLowerCase());
+      if (!token) throw new Error(`${tokenAddress} not found`);
+    }
     const transfers = new Transfers(redis, network, token);
 
     return success({
