@@ -16,7 +16,7 @@ package:
     - "dist/*/**"
 
 functions:
-  writerBSC:
+  indexerBSC:
     handler: dist/index.indexerBSC
     fileSystemConfig: ${file(./serverless-fs.yml)}
     timeout: 290

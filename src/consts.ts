@@ -7,7 +7,7 @@ export const BSC_URL = `https://long-thrumming-dream.bsc.quiknode.pro/${
 export const BSC_URL2 = `https://cold-silent-rain.bsc.quiknode.pro/${
   secrets.QUICKNODE_KEY2 || config().quicknodeKey2
 }/`;
-export const REDIS_URL = "https://base-assets-redis.u4gq8o.0001.use2.cache.amazonaws.com";
+export const REDIS_URL = "base-assets-redis.u4gq8o.0001.use2.cache.amazonaws.com";
 
 function config() {
   try {

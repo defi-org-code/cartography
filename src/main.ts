@@ -2,7 +2,7 @@ import _ from "lodash";
 import Web3 from "web3";
 import Redis from "ioredis";
 import { erc20, erc20s, setWeb3Instance, web3 } from "@defi.org/web3-candies";
-import { BSC_URL, REDIS_URL } from "./consts";
+import { BSC_URL, BSC_URL2, REDIS_URL } from "./consts";
 import { Transfers } from "./indexers/transfers";
 import { withLock } from "./lock";
 
@@ -105,7 +105,7 @@ async function catchErrors(this: any, event: any, context: any) {
 }
 
 async function withState(fn: (redis: Redis.Redis) => Promise<any>) {
-  setWeb3Instance(new Web3(BSC_URL));
+  setWeb3Instance(new Web3(BSC_URL2));
   const redis = new Redis(process.env.HOME_DIR ? REDIS_URL : undefined);
   try {
     return await fn(redis);
