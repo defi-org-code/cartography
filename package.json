@@ -29,7 +29,7 @@
     "prettier": "prettier --write '{contracts,src,test}/**/*.{ts,js,json,sol}'",
     "prebuild": "rm -rf dist && npm run prettier",
     "build": "ncc build ./src/main.ts --target=es5",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' mocha -r ts-node/register 'test/**/*.ts' --timeout 120000",
+    "test": "# env TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' mocha -r ts-node/register 'test/**/*.ts' --timeout 120000",
     "dev": "env TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' node --max_old_space_size=8192 ./node_modules/.bin/ts-node -e 'require(`./test/dev`).dev().then(console.log)'",
     "indexerBSC": "node -e \"require('./dist/index.js').indexerBSC().then(console.log)\"",
     "info": "node -e \"require('./dist/index.js').info().then(console.log)\"",
