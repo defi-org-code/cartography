@@ -47,9 +47,9 @@ async function _info(event: any, context: any) {
     return success({
       bsc: {
         transfers,
-        redis: {
-          info: await redis.info(),
-        },
+      },
+      redis: {
+        info: await redis.info(),
       },
     });
   });
