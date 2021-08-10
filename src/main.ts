@@ -2,7 +2,7 @@ import _ from "lodash";
 import Web3 from "web3";
 import Redis from "ioredis";
 import { erc20s, setWeb3Instance, web3 } from "@defi.org/web3-candies";
-import { BSC_URL2, ETH_URL, REDIS_URL } from "./consts";
+import { BSC_URL, ETH_URL, REDIS_URL } from "./consts";
 import { Transfers } from "./indexers/transfers";
 import { log } from "./utils";
 
@@ -16,7 +16,7 @@ class Main {
   redis: Redis.Redis;
   constructor(public network: "eth" | "bsc") {
     log("main");
-    setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL2));
+    setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL));
     log("web3", web3().version);
     this.redis = new Redis(process.env.HOME_DIR ? REDIS_URL : undefined);
     log("redis", this.redis.options.host);
@@ -61,7 +61,7 @@ class Main {
       bsc: {},
     } as any;
     for (const network of ["eth", "bsc"]) {
-      setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL2));
+      setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL));
       const currentBlock = await web3().eth.getBlockNumber();
       for (const token of this.assets(network as any)) {
         const ts = new Transfers(this.redis, network as any, token);
@@ -80,8 +80,11 @@ class Main {
   }
 
   async transfers(token: string) {
+    log("main->transfers", token);
     const t = this.findToken(this.network, token);
+    log("t", t.name);
     const transfers = new Transfers(this.redis, this.network, t);
+    log("transfers bounds", await transfers.indexedBounds());
 
     return {
       [t.name]: {

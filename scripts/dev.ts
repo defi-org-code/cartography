@@ -1,8 +1,10 @@
+import _ from "lodash";
 import { indexerBSC, indexerETH, info, transfers } from "../src/main";
 import child_process from "child_process";
 
-export async function dev() {
-  const [, fn, network, token] = process.argv;
+async function dev() {
+  const args = _.reject(process.argv, (a: string) => a.includes("dev.ts"));
+  const [, fn, network, token] = args;
   switch (fn) {
     case "info":
       return JSON.parse((await info({ pathParameters: { network } }, {})).body);
@@ -37,3 +39,5 @@ async function preventMacSleep(fn: () => void) {
 async function sleep(seconds: number) {
   return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
+
+dev().then(console.log).catch(console.error);
