@@ -63,27 +63,31 @@ class Main {
       eth: {},
       bsc: {},
     } as any;
+
     for (const network of ["eth", "bsc"]) {
       setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL));
       const currentBlock = await web3().eth.getBlockNumber();
       transfers[network].currentBlock = currentBlock;
-      for (const token of this.assets(network as any)) {
-        const ts = new Transfers(this.redis, network as any, token);
-        transfers[network][token.name] = {
-          indexed: await ts.indexedBounds(),
-          next: await ts.nextInterval(currentBlock),
-        };
-      }
+
+      await Promise.all(
+        this.assets(network as any).map((token) => {
+          const ts = new Transfers(this.redis, network as any, token);
+          return Promise.all([ts.indexedBounds(), ts.nextInterval(currentBlock)]).then(([indexed, next]) => {
+            transfers[network][token.name] = { indexed, next };
+          });
+        })
+      );
     }
+
     return { transfers };
   }
 
   async ping() {
     return {
-      redis: silent(() => this.redis.ping()),
+      redis: await silent(() => this.redis.ping()),
       web3: {
-        eth: silent(() => new Web3(ETH_URL).eth.getBlockNumber()),
-        bsc: silent(() => new Web3(BSC_URL).eth.getBlockNumber()),
+        eth: await silent(() => new Web3(ETH_URL).eth.getBlockNumber()),
+        bsc: await silent(() => new Web3(BSC_URL).eth.getBlockNumber()),
       },
     };
   }
