@@ -32,7 +32,7 @@ export class Transfers extends Indexer {
     log("transfers", transfers.length);
 
     await this.saveTransfers(next, transfers);
-    console.log("done");
+    log("done");
   }
 
   async topTokenTransfersReceiversAllTime(count: number = 10) {

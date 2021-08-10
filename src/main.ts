@@ -43,6 +43,7 @@ class Main {
 
   async indexerBSC() {
     for (const token of this.assets(this.network)) {
+      log("indexing", token.name);
       const transfers = new Transfers(this.redis, this.network, token);
       await transfers.updateIndex();
     }
@@ -50,34 +51,32 @@ class Main {
 
   async indexerETH() {
     for (const token of this.assets(this.network)) {
+      log("indexing", token.name);
       const transfers = new Transfers(this.redis, this.network, token);
       await transfers.updateIndex();
     }
   }
 
   async info() {
-    // const transfers = {
-    //   eth: {},
-    //   bsc: {},
-    // } as any;
-    // for (const network of ["eth", "bsc"]) {
-    //   setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL));
-    //   const currentBlock = await web3().eth.getBlockNumber();
-    //   for (const token of this.assets(network as any)) {
-    //     const ts = new Transfers(this.redis, network as any, token);
-    //     transfers[network][token.name] = {
-    //       indexed: await ts.indexedBounds(),
-    //       next: await ts.nextInterval(currentBlock),
-    //     };
-    //   }
-    // }
-    // return {
-    //   transfers,
-    //   redis: {
-    //     info: await this.redis.info(),
-    //   },
-    // };
+    const transfers = {
+      eth: {},
+      bsc: {},
+    } as any;
+    for (const network of ["eth", "bsc"]) {
+      setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL));
+      const currentBlock = await web3().eth.getBlockNumber();
+      for (const token of this.assets(network as any)) {
+        const ts = new Transfers(this.redis, network as any, token);
+        transfers[network][token.name] = {
+          indexed: await ts.indexedBounds(),
+          next: await ts.nextInterval(currentBlock),
+        };
+      }
+    }
+    return { transfers };
+  }
 
+  async ping() {
     return await this.redis.ping();
   }
 

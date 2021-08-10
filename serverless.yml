@@ -19,6 +19,14 @@ functions:
     timeout: 290
     events:
       - schedule: rate(5 minutes)
+  ping:
+    handler: dist/index.ping
+    fileSystemConfig: ${file(./serverless-fs.yml)}
+    events:
+      - http:
+          path: ping
+          method: get
+          cors: true
   info:
     handler: dist/index.info
     fileSystemConfig: ${file(./serverless-fs.yml)}
