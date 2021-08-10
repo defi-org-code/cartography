@@ -42,19 +42,10 @@ class Main {
   }
 
   async indexerBSC() {
-    console.log("PINGING:");
-    try {
-      const result = await this.redis.ping();
-      console.log("PING result", result);
-      return result;
-    } catch (e) {
-      console.log(e, e.message);
+    for (const token of this.assets(this.network)) {
+      const transfers = new Transfers(this.redis, this.network, token);
+      await transfers.updateIndex();
     }
-
-    // for (const token of this.assets(this.network)) {
-    //   const transfers = new Transfers(this.redis, this.network, token);
-    //   await transfers.updateIndex();
-    // }
   }
 
   async indexerETH() {
@@ -65,27 +56,29 @@ class Main {
   }
 
   async info() {
-    const transfers = {
-      eth: {},
-      bsc: {},
-    } as any;
-    for (const network of ["eth", "bsc"]) {
-      setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL));
-      const currentBlock = await web3().eth.getBlockNumber();
-      for (const token of this.assets(network as any)) {
-        const ts = new Transfers(this.redis, network as any, token);
-        transfers[network][token.name] = {
-          indexed: await ts.indexedBounds(),
-          next: await ts.nextInterval(currentBlock),
-        };
-      }
-    }
-    return {
-      transfers,
-      redis: {
-        info: await this.redis.info(),
-      },
-    };
+    // const transfers = {
+    //   eth: {},
+    //   bsc: {},
+    // } as any;
+    // for (const network of ["eth", "bsc"]) {
+    //   setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL));
+    //   const currentBlock = await web3().eth.getBlockNumber();
+    //   for (const token of this.assets(network as any)) {
+    //     const ts = new Transfers(this.redis, network as any, token);
+    //     transfers[network][token.name] = {
+    //       indexed: await ts.indexedBounds(),
+    //       next: await ts.nextInterval(currentBlock),
+    //     };
+    //   }
+    // }
+    // return {
+    //   transfers,
+    //   redis: {
+    //     info: await this.redis.info(),
+    //   },
+    // };
+
+    return await this.redis.ping();
   }
 
   async transfers(token: string) {
