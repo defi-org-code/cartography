@@ -8,6 +8,7 @@ import { log } from "./utils";
 
 export const indexerBSC = (event: any, context: any) => new Main("bsc").execute(event, context, (m) => m.indexerBSC());
 export const indexerETH = (event: any, context: any) => new Main("eth").execute(event, context, (m) => m.indexerETH());
+export const ping = (event: any, context: any) => new Main("eth").execute(event, context, (m) => m.ping());
 export const info = (event: any, context: any) => new Main("eth").execute(event, context, (m) => m.info());
 export const transfers = (event: any, context: any) =>
   new Main(event.pathParameters.network).execute(event, context, (m) => m.transfers(event.pathParameters.token));
