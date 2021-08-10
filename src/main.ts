@@ -42,7 +42,10 @@ class Main {
   }
 
   async indexerBSC() {
-    return await this.redis.ping();
+    console.log("PINGING:");
+    const result = await this.redis.ping();
+    console.log("PING result", result);
+    return result;
     // for (const token of this.assets(this.network)) {
     //   const transfers = new Transfers(this.redis, this.network, token);
     //   await transfers.updateIndex();
