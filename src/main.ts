@@ -66,6 +66,7 @@ class Main {
     for (const network of ["eth", "bsc"]) {
       setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL));
       const currentBlock = await web3().eth.getBlockNumber();
+      transfers[network].currentBlock = currentBlock;
       for (const token of this.assets(network as any)) {
         const ts = new Transfers(this.redis, network as any, token);
         transfers[network][token.name] = {
@@ -78,7 +79,13 @@ class Main {
   }
 
   async ping() {
-    return await this.redis.ping();
+    return {
+      redis: silent(() => this.redis.ping()),
+      web3: {
+        eth: silent(() => new Web3(ETH_URL).eth.getBlockNumber()),
+        bsc: silent(() => new Web3(BSC_URL).eth.getBlockNumber()),
+      },
+    };
   }
 
   async transfers(token: string) {
@@ -113,5 +120,13 @@ class Main {
       case "eth":
         return [erc20s.eth.WETH(), erc20s.eth.WBTC(), erc20s.eth.USDC(), erc20s.eth.USDT(), erc20s.eth.DAI()];
     }
+  }
+}
+
+async function silent(fn: () => any) {
+  try {
+    return await fn();
+  } catch (e) {
+    return e;
   }
 }
