@@ -42,10 +42,11 @@ class Main {
   }
 
   async indexerBSC() {
-    for (const token of this.assets(this.network)) {
-      const transfers = new Transfers(this.redis, this.network, token);
-      await transfers.updateIndex();
-    }
+    return await this.redis.ping();
+    // for (const token of this.assets(this.network)) {
+    //   const transfers = new Transfers(this.redis, this.network, token);
+    //   await transfers.updateIndex();
+    // }
   }
 
   async indexerETH() {
