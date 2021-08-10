@@ -9,7 +9,7 @@ export const MAX_DAYS_BACK = 90;
 // }/`;
 export const BSC_URL = `https://cold-silent-rain.bsc.quiknode.pro/${secrets.QUICKNODE_KEY2 || config().quicknodeKey2}/`;
 export const ETH_URL = `https://eth-mainnet.alchemyapi.io/v2/${config().alchemyKey}`;
-export const REDIS_URL = "redis://base-assets-redis.u4gq8o.0001.use2.cache.amazonaws.com";
+export const REDIS_URL = "base-assets-redis.u4gq8o.0001.use2.cache.amazonaws.com";
 
 function config() {
   try {

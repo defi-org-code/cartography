@@ -18,7 +18,7 @@ class Main {
     log("main");
     setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL));
     log("web3", web3().version);
-    this.redis = new Redis(6379, process.env.HOME_DIR ? REDIS_URL : undefined);
+    this.redis = new Redis(process.env.HOME_DIR ? REDIS_URL : undefined);
     log("redis", this.redis.options.host);
   }
 
