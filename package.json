@@ -29,12 +29,11 @@
     "prettier": "prettier --write '{contracts,src,test}/**/*.{ts,js,json,sol}'",
     "prebuild": "rm -rf dist && npm run prettier",
     "build": "ncc build ./src/main.ts --target=es5",
-    "test": "# env TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' mocha -r ts-node/register 'test/**/*.ts' --timeout 120000",
-    "dev": "env TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' node --max_old_space_size=8192 ./node_modules/.bin/ts-node -e 'require(`./test/dev`).dev().then(console.log)'",
-    "indexerBSC": "node -e \"require('./dist/index.js').indexerBSC().then(console.log)\"",
-    "info": "node -e \"require('./dist/index.js').info().then(console.log)\"",
-    "transfers": "node -e \"require('./dist/index.js').transfers({pathParameters:{network:process.argv[1], tokenAddress:process.argv[2]}}).then(console.log)\"",
-    "blockRange": "node -e \"require('./dist/index.js').blockRange({pathParameters:{network:process.argv[1], date:process.argv[2]}}).then(console.log)\"",
+    "test": "env TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' mocha -r ts-node/register 'test/**/*.ts' --timeout 120000",
+    "dev": "env TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' ts-node -e 'require(`./test/dev`).dev().then(console.dir).catch(console.error)'",
+    "indexerBSC": "node -e \"require('./dist/index.js').indexerBSC().then(console.dir).catch(console.error)\"",
+    "info": "node -e \"require('./dist/index.js').info().then(console.dir).catch(console.error)\"",
+    "transfers": "node -e \"require('./dist/index.js').transfers({pathParameters:{network:process.argv[1], token:process.argv[2]}}).then(console.dir).catch(console.error)\"",
     "serverless-package": "REPO_SECRETS_JSON='{}' GITHUB_REPO_NAME='repo' AWS_STORAGE_ARN='arn:aws:elasticfilesystem:us-e-2:123456789012:access-point/fsap-12345678901234567' AWS_STORAGE_SG='sg' AWS_STORAGE_SUBNET='subnet' npx serverless package"
   },
   "prettier": {

@@ -35,14 +35,6 @@ functions:
     fileSystemConfig: ${file(./serverless-fs.yml)}
     events:
       - http:
-          path: transfers/{network}/{tokenAddress}
-          method: get
-          cors: true
-  blockRange:
-    handler: dist/index.blockRange
-    fileSystemConfig: ${file(./serverless-fs.yml)}
-    events:
-      - http:
-          path: blockRange/{network}/{date}
+          path: transfers/{network}/{token}
           method: get
           cors: true
