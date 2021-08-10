@@ -1,3 +1,7 @@
+export function log(...args: any[]) {
+  console.log(new Date(), ...args);
+}
+
 export function dayUTC(timestamp: number = Date.now()) {
   const date = new Date(timestamp);
   return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());

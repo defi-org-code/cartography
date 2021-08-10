@@ -2,7 +2,7 @@ import _ from "lodash";
 import { Redis } from "ioredis";
 import { Indexer } from "./indexer";
 import { IERC20, to3, web3 } from "@defi.org/web3-candies";
-import { chunkIntervals } from "../utils";
+import { chunkIntervals, log } from "../utils";
 import { INTERVAL_SIZE, REQ_CHUNK_SIZE } from "../consts";
 
 export type TransferEvent = {
@@ -21,12 +21,18 @@ export class Transfers extends Indexer {
   }
 
   async updateIndex() {
-    const next = await this.nextInterval(await web3().eth.getBlockNumber());
+    log("transfers->updateIndex");
+    const currentBlock = await web3().eth.getBlockNumber();
+    log("currentBlock", currentBlock);
+    const next = await this.nextInterval(currentBlock);
+    log("next interval", next);
     if (next <= 0) return;
 
     const transfers = await this.fetchTransfers(next);
+    log("transfers", transfers.length);
 
     await this.saveTransfers(next, transfers);
+    console.log("done");
   }
 
   async topTokenTransfersReceiversAllTime(count: number = 10) {

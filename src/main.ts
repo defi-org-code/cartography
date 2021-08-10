@@ -4,6 +4,7 @@ import Redis from "ioredis";
 import { erc20s, setWeb3Instance, web3 } from "@defi.org/web3-candies";
 import { BSC_URL2, ETH_URL, REDIS_URL } from "./consts";
 import { Transfers } from "./indexers/transfers";
+import { log } from "./utils";
 
 export const indexerBSC = (event: any, context: any) => new Main("bsc").execute(event, context, (m) => m.indexerBSC());
 export const indexerETH = (event: any, context: any) => new Main("eth").execute(event, context, (m) => m.indexerETH());
@@ -14,8 +15,11 @@ export const transfers = (event: any, context: any) =>
 class Main {
   redis: Redis.Redis;
   constructor(public network: "eth" | "bsc") {
+    log("main");
     setWeb3Instance(new Web3(network == "eth" ? ETH_URL : BSC_URL2));
+    log("web3", web3().version);
     this.redis = new Redis(process.env.HOME_DIR ? REDIS_URL : undefined);
+    log("redis", this.redis.options.host);
   }
 
   async execute(event: { pathParameters: any }, context: any, fn: (m: Main) => Promise<any>) {

@@ -13,11 +13,11 @@ export async function dev() {
     default: {
       await preventMacSleep(async () => {
         while (true) {
-          console.log("running indexerBSC");
+          console.log(new Date(), "running indexerBSC");
           await indexerBSC({}, {});
-          console.log("running indexerETH");
+          console.log(new Date(), "running indexerETH");
           await indexerETH({}, {});
-          await sleep(60);
+          await sleep(1);
         }
       });
     }
