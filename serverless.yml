@@ -16,15 +16,15 @@ functions:
   indexerBSC:
     handler: dist/index.indexerBSC
     fileSystemConfig: ${file(./serverless-fs.yml)}
-    timeout: 290
+    timeout: 100
     events:
-      - schedule: rate(5 minutes)
+      - schedule: rate(2 minutes)
   indexerETH:
     handler: dist/index.indexerETH
     fileSystemConfig: ${file(./serverless-fs.yml)}
-    timeout: 290
+    timeout: 100
     events:
-      - schedule: rate(5 minutes)
+      - schedule: rate(2 minutes)
   ping:
     handler: dist/index.ping
     fileSystemConfig: ${file(./serverless-fs.yml)}
