@@ -37,11 +37,15 @@ export class Transfers extends Indexer {
   async topTokenTransferReceiversAllTime(count: number = 10) {
     const k = tempKey(`${this.kSumKeys()}:alltime`);
 
+    console.log("tempKey", k);
     const keys: string[] = await this.redis.send_command("ZRANGE", this.kSumKeys(), 0, -1);
+    console.log("keys", keys.length);
     await this.redis.send_command("ZUNIONSTORE", k, keys.length, ...keys);
+    console.log("union");
 
     const result = await this.redis.send_command("ZRANGE", k, "+inf", 0, "BYSCORE", "REV", "LIMIT", 0, count);
-    await silent(() => this.redis.send_command("unlink", k));
+    console.log("result", result.length);
+    await silent(() => this.redis.send_command("UNLINK", k));
     return result;
   }
 

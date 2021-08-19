@@ -7,8 +7,7 @@ export function findBaseAsset(network: Network, token: string): IERC20 {
   const theToken = _.find(
     baseAssets(network),
     (a) =>
-      web3().utils.toChecksumAddress(a.address) == web3().utils.toChecksumAddress(token) ||
-      a.name.toLowerCase().replace("$", "") == token.toLowerCase()
+      a.address.toLowerCase() == token.toLowerCase() || a.name.toLowerCase().replace("$", "") == token.toLowerCase()
   );
   if (!theToken) throw new Error(`${token} not found in network ${network}`);
   return theToken;
