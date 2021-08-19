@@ -39,9 +39,10 @@ export class Transfers extends Indexer {
 
     const keys: string[] = await this.redis.send_command("ZRANGE", this.kSumKeys(), 0, -1);
     if (!keys.length) return;
-    await this.redis.send_command("ZUNIONSTORE", k, keys.length, ...keys);
+    await this.redis.send_command("ZUNIONSTORE", k, keys.length, keys);
+    log("stored union of", keys.length, "at", k);
 
-    const result = await this.redis.send_command("ZRANGE", k, 0, count - 1, "REV");
+    const result: string[] = await this.redis.send_command("ZRANGE", k, 0, count - 1, "REV");
     await silent(() => this.redis.send_command("UNLINK", k));
     return result;
   }
@@ -66,7 +67,7 @@ export class Transfers extends Indexer {
       .value();
   }
 
-  async saveTransfers(interval: number, transfers: TransferEvent[], maxMembers: number = 100) {
+  async saveTransfers(interval: number, transfers: TransferEvent[], maxMembers: number = 10) {
     const key = this.kSum(interval);
     await silent(() => this.redis.send_command(`DEL ${key}`));
     await Promise.all(_.map(transfers, (t) => this.redis.send_command("ZINCRBY", key, t.value3, t.to)));
