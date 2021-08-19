@@ -42,9 +42,9 @@ export class Transfers extends Indexer {
     await this.redis.send_command("ZUNIONSTORE", k, keys.length, keys);
     log("stored union of", keys.length, "at", k);
 
-    const result: string[] = await this.redis.send_command("ZRANGE", k, 0, count - 1, "REV");
+    const result: string[] = await this.redis.send_command("ZRANGE", k, -count - 1, -1);
     await silent(() => this.redis.send_command("UNLINK", k));
-    return result;
+    return _.reverse(result);
   }
 
   async fetchTransfers(interval: number): Promise<TransferEvent[]> {
