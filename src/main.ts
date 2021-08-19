@@ -16,7 +16,8 @@ export const filterBSC = (event: any, context: any) => new Main("bsc").execute(e
 
 // utility
 export const ping = (event: any, context: any) => new Main("eth").execute(event, context, (m) => m.ping(event));
-export const debug = (event: any, context: any) => new Main("eth").execute(event, context, (m) => m.debug(true));
+export const debug = (event: any, context: any) =>
+  new Main("eth").execute(event, context, (m) => m.debug(_.get(event.queryStringParameters, "flush")));
 
 // readers
 export const leaders = (event: any, context: any) =>
@@ -112,7 +113,7 @@ class Main {
 
   async debug(flush: boolean) {
     if (flush) {
-      // await this.redis.flushall();
+      await this.redis.flushall(); //TODO remove after stabilize
     }
 
     const transfers = {

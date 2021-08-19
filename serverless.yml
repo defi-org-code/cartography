@@ -41,10 +41,6 @@ functions:
           path: debug
           method: get
           cors: true
-          request:
-            parameters:
-              querystrings:
-                flush: false
   leaders:
     handler: dist/index.leaders
     fileSystemConfig: ${file(./serverless-fs.yml)}
