@@ -2,8 +2,9 @@ import _ from "lodash";
 import { Redis } from "ioredis";
 import { Indexer } from "./indexer";
 import { IERC20, to3, web3 } from "@defi.org/web3-candies";
-import { chunkIntervals, log } from "../utils";
+import { chunkIntervals, log, silent, tempKey } from "../utils";
 import { INTERVAL_SIZE, REQ_CHUNK_SIZE } from "../consts";
+import { Network } from "../tokens";
 
 export type TransferEvent = {
   block: number;
@@ -12,7 +13,7 @@ export type TransferEvent = {
 };
 
 export class Transfers extends Indexer {
-  constructor(redis: Redis, network: "eth" | "bsc", public token: IERC20) {
+  constructor(redis: Redis, network: Network, public token: IERC20, public block: number) {
     super(redis, network);
   }
 
@@ -21,10 +22,8 @@ export class Transfers extends Indexer {
   }
 
   async updateIndex() {
-    log("transfers->updateIndex");
-    const currentBlock = await web3().eth.getBlockNumber();
-    log("currentBlock", currentBlock);
-    const next = await this.nextInterval(currentBlock);
+    log("transfers->updateIndex", this.network, this.token.name, this.block);
+    const next = await this.nextInterval(this.block);
     log("next interval", next);
     if (next <= 0) return;
 
@@ -35,11 +34,15 @@ export class Transfers extends Indexer {
     log("done");
   }
 
-  async topTokenTransfersReceiversAllTime(count: number = 10) {
+  async topTokenTransferReceiversAllTime(count: number = 10) {
+    const k = tempKey(`${this.kSumKeys()}:alltime`);
+
     const keys: string[] = await this.redis.send_command("ZRANGE", this.kSumKeys(), 0, -1);
-    const sumKey = `${this.kSumKeys()}:alltime`;
-    await this.redis.send_command("ZUNIONSTORE", sumKey, keys.length, ...keys);
-    return await this.redis.send_command("ZRANGE", sumKey, "+inf", 0, "BYSCORE", "REV", "LIMIT", 0, count);
+    await this.redis.send_command("ZUNIONSTORE", k, keys.length, ...keys);
+
+    const result = await this.redis.send_command("ZRANGE", k, "+inf", 0, "BYSCORE", "REV", "LIMIT", 0, count);
+    await silent(() => this.redis.send_command("unlink", k));
+    return result;
   }
 
   async fetchTransfers(interval: number): Promise<TransferEvent[]> {
@@ -58,15 +61,15 @@ export class Transfers extends Indexer {
         value3: to3(e.returnValues.value, decimals).toNumber(),
         block: e.blockNumber,
       }))
+      .filter((e) => e.value3 > 0)
       .value();
   }
 
-  async saveTransfers(interval: number, transfers: TransferEvent[]) {
+  async saveTransfers(interval: number, transfers: TransferEvent[], maxMembers: number = 100) {
     const key = this.kSum(interval);
-    try {
-      await this.redis.send_command(`DEL ${key}`);
-    } catch (e) {}
+    await silent(() => this.redis.send_command(`DEL ${key}`));
     await Promise.all(_.map(transfers, (t) => this.redis.send_command("ZINCRBY", key, t.value3, t.to)));
+    await this.redis.send_command("ZREMRANGEBYRANK", key, 0, -maxMembers - 1);
     await this.redis.send_command("ZADD", this.kSumKeys(), interval, key);
   }
 
@@ -88,22 +91,10 @@ export class Transfers extends Indexer {
   }
 
   kSumKeys() {
-    return `${this.prefix()}:intervals:${INTERVAL_SIZE}:${this.token.address}:sum:keys`.toLowerCase();
+    return `${this.prefix()}:${this.token.address}:sum:keys`.toLowerCase();
   }
 
   kSum(interval: number) {
-    return `${this.prefix()}:intervals:${INTERVAL_SIZE}:${this.token.address}:sum:${interval}`.toLowerCase();
+    return `${this.prefix()}:${this.token.address}:sum:${interval}`.toLowerCase();
   }
-
-  // kSumDailyKeys() {
-  //   return `${this.prefix()}:sum:daily:${this.token.address}:keys`.toLowerCase();
-  // }
-  //
-  // kSumDaily(day: number) {
-  //   return `${this.prefix()}:sum:daily:${this.token.address}:${this.dayString(day)}`.toLowerCase();
-  // }
-  //
-  // dayString(timestamp: number) {
-  //   return new Date(timestamp).toISOString().split("T")[0];
-  // }
 }

@@ -19,6 +19,12 @@ functions:
     timeout: 290
     events:
       - schedule: rate(5 minutes)
+  indexerETH:
+    handler: dist/index.indexerETH
+    fileSystemConfig: ${file(./serverless-fs.yml)}
+    timeout: 290
+    events:
+      - schedule: rate(5 minutes)
   ping:
     handler: dist/index.ping
     fileSystemConfig: ${file(./serverless-fs.yml)}
@@ -27,19 +33,23 @@ functions:
           path: ping
           method: get
           cors: true
-  info:
-    handler: dist/index.info
+  debug:
+    handler: dist/index.debug
     fileSystemConfig: ${file(./serverless-fs.yml)}
     events:
       - http:
-          path: info
+          path: debug
           method: get
           cors: true
-  transfers:
-    handler: dist/index.transfers
+          request:
+            parameters:
+              querystrings:
+                flush: false
+  leaders:
+    handler: dist/index.leaders
     fileSystemConfig: ${file(./serverless-fs.yml)}
     events:
       - http:
-          path: transfers/{network}/{token}
+          path: leaders/{network}/{token}
           method: get
           cors: true

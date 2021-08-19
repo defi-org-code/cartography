@@ -1,23 +1,28 @@
 import _ from "lodash";
-import { indexerBSC, indexerETH, info, transfers } from "../src/main";
+import { debug, filterBSC, filterETH, indexerBSC, indexerETH, leaders, ping } from "../src/main";
 import child_process from "child_process";
+import { log } from "../src/utils";
 
 async function dev() {
   const args = _.reject(process.argv, (a: string) => a.includes("dev.ts"));
   const [, fn, network, token] = args;
   switch (fn) {
-    case "info":
-      return JSON.parse((await info({ pathParameters: { network } }, {})).body);
-    case "transfers":
-      return JSON.parse((await transfers({ pathParameters: { network, token } }, {})).body);
-    case "":
-    case "indexerBSC":
+    case "debug":
+      return JSON.parse((await debug({}, {})).body);
+    case "ping":
+      return JSON.parse((await ping({}, {})).body);
+    case "leaders":
+      return JSON.parse((await leaders({ pathParameters: { network, token } }, {})).body);
     default: {
       await preventMacSleep(async () => {
         while (true) {
-          console.log(new Date(), "running indexerBSC");
+          log("filtering ETH");
+          await filterETH({}, {});
+          log("filtering BSC");
+          await filterBSC({}, {});
+          log("running indexerBSC");
           await indexerBSC({}, {});
-          console.log(new Date(), "running indexerETH");
+          log("running indexerETH");
           await indexerETH({}, {});
           await sleep(1);
         }
@@ -41,4 +46,4 @@ async function sleep(seconds: number) {
   return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 
-dev().then(console.log).catch(console.error);
+dev().then(log).catch(console.error);

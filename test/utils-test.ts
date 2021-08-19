@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { expect } from "chai";
-import { addDaysUTC, chunkIntervals, dayUTC, findIntervalToCache } from "../src/utils";
+import { addDaysUTC, chunkIntervals, dayUTC, findIntervalToCache, tempKey } from "../src/utils";
 
 describe("utils", () => {
   it("dayUTC", async () => {
@@ -49,5 +49,11 @@ describe("utils", () => {
       .include({ from: 501, to: 1001 })
       .include({ from: 1002, to: 1502 });
     expect(_.last(chunkIntervals(0, 100_000, 500))).deep.eq({ from: 99_699, to: 100_000 });
+  });
+
+  it("tempKey", async () => {
+    const k1 = tempKey("foo");
+    const k2 = tempKey("foo");
+    expect(k1).not.deep.eq(k2);
   });
 });

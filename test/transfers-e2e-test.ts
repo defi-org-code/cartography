@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import Web3 from "web3";
 import Redis from "ioredis";
-import { erc20s, setWeb3Instance } from "@defi.org/web3-candies";
+import { erc20s, setWeb3Instance, web3 } from "@defi.org/web3-candies";
 import { BSC_URL } from "../src/consts";
 import { Transfers } from "../src/indexers/transfers";
 
@@ -26,7 +26,7 @@ describe("transfers indexer e2e", () => {
     let uut: TestTransfers;
 
     beforeEach(async () => {
-      uut = new TestTransfers(redis, "bsc", erc20s.bsc.BTCB());
+      uut = new TestTransfers(redis, "bsc", erc20s.bsc.BTCB(), 1);
       const keys = await redis.keys(`${uut.prefix()}*`);
       if (keys.length) await redis.del(keys);
     });
@@ -68,21 +68,21 @@ describe("transfers indexer e2e", () => {
         { to: "0x3", value3: 300, block: 1 },
         { to: "0x2", value3: 300, block: 1 },
       ]);
-      expect(await uut.topTokenTransfersReceiversAllTime()).deep.eq(["0x2", "0x3", "0x1"]);
+      expect(await uut.topTokenTransferReceiversAllTime()).deep.eq(["0x2", "0x3", "0x1"]);
     });
   });
 
   describe("real data BSC", () => {
     it("transfers for BTCB", async () => {
-      const real = new Transfers(redis, "bsc", erc20s.bsc.BTCB());
+      const real = new Transfers(redis, "bsc", erc20s.bsc.BTCB(), await web3().eth.getBlockNumber());
       await real.updateIndex();
-      console.log("BTCB All Time Top Receivers:", await real.topTokenTransfersReceiversAllTime());
+      console.log("BTCB All Time Top Receivers:", await real.topTokenTransferReceiversAllTime());
     });
 
     it("transfers for WBNB", async () => {
-      const real = new Transfers(redis, "bsc", erc20s.bsc.WBNB());
+      const real = new Transfers(redis, "bsc", erc20s.bsc.WBNB(), await web3().eth.getBlockNumber());
       await real.updateIndex();
-      console.log("WBNB All Time Top Receivers:", await real.topTokenTransfersReceiversAllTime());
+      console.log("WBNB All Time Top Receivers:", await real.topTokenTransferReceiversAllTime());
     });
   });
 });

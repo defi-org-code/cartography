@@ -49,3 +49,15 @@ export function chunkIntervals(from: number, to: number, size: number, unit: num
   }
   return result;
 }
+
+export async function silent(fn: () => any) {
+  try {
+    return await fn();
+  } catch (e) {
+    return e;
+  }
+}
+
+export function tempKey(key: string) {
+  return `${key}:${Date.now()}:${Math.round(Math.random() * 1e9)}`;
+}

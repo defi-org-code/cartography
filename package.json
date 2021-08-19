@@ -17,8 +17,7 @@
   "dependencies": {
     "@defi.org/web3-candies": "1.x",
     "@types/ioredis": "4.x",
-    "ioredis": "4.x",
-    "ethereum-block-by-date": "1.x"
+    "ioredis": "4.x"
   },
   "devDependencies": {
     "@vercel/ncc": "0.x",
@@ -30,9 +29,7 @@
     "build": "ncc build ./src/main.ts --target=es5",
     "test": "./scripts/test.sh",
     "dev": "env TS_NODE_COMPILER_OPTIONS='{ \"module\": \"commonjs\" }' ts-node ./scripts/dev.ts",
-    "indexerBSC": "node -e \"require('./dist/index.js').indexerBSC().then(console.dir).catch(console.error)\"",
-    "info": "node -e \"require('./dist/index.js').info().then(console.dir).catch(console.error)\"",
-    "transfers": "node -e \"require('./dist/index.js').transfers({pathParameters:{network:process.argv[1], token:process.argv[2]}}).then(console.dir).catch(console.error)\"",
+    "debug": "node -e \"require('./dist/index.js').debug().then(console.dir).catch(console.error)\"",
     "serverless-package": "REPO_SECRETS_JSON='{}' GITHUB_REPO_NAME='repo' AWS_STORAGE_ARN='arn:aws:elasticfilesystem:us-e-2:123456789012:access-point/fsap-12345678901234567' AWS_STORAGE_SG='sg' AWS_STORAGE_SUBNET='subnet' npx serverless package"
   },
   "prettier": {
