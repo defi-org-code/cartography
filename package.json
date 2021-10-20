@@ -1,23 +1,21 @@
 {
-  "name": "cartography",
+  "name": "defi-leaderboard",
   "version": "1.0.0",
-  "description": "On chain asset discovery",
+  "description": "",
   "license": "MIT",
   "author": "defi.org",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/defi-org-code/cartography.git"
+    "url": "git+https://github.com/defi-org-code/defi-leaderboard.git"
   },
   "bugs": {
-    "url": "https://github.com/defi-org-code/cartography/issues"
+    "url": "https://github.com/defi-org-code/defi-leaderboard/issues"
   },
-  "homepage": "https://github.com/defi-org-code/cartography#readme",
+  "homepage": "https://github.com/defi-org-code/defi-leaderboard#readme",
   "main": "dist/index.js",
   "dependencies": {
-    "@defi.org/web3-candies": "1.x",
-    "@types/ioredis": "4.x",
-    "ioredis": "4.x"
+    "@defi.org/web3-candies": "2.x"
   },
   "devDependencies": {
     "@vercel/ncc": "0.x",

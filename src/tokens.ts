@@ -1,7 +1,9 @@
 import _ from "lodash";
-import { erc20s, IERC20, web3 } from "@defi.org/web3-candies";
+import { erc20s, IERC20, Network, networks } from "@defi.org/web3-candies";
 
-export type Network = "eth" | "bsc";
+export function networkByName(name: string): Network {
+  return _.find(networks, (n) => n.shortname == name || n.id.toString() == name)!!;
+}
 
 export function findBaseAsset(network: Network, token: string): IERC20 {
   const theToken = _.find(
@@ -9,15 +11,10 @@ export function findBaseAsset(network: Network, token: string): IERC20 {
     (a) =>
       a.address.toLowerCase() == token.toLowerCase() || a.name.toLowerCase().replace("$", "") == token.toLowerCase()
   );
-  if (!theToken) throw new Error(`${token} not found in network ${network}`);
+  if (!theToken) throw new Error(`${token} not found in network ${network.name}`);
   return theToken;
 }
 
 export function baseAssets(network: Network): IERC20[] {
-  switch (network) {
-    case "eth":
-      return [erc20s.eth.WETH(), erc20s.eth.WBTC(), erc20s.eth.USDC(), erc20s.eth.USDT(), erc20s.eth.DAI()];
-    case "bsc":
-      return [erc20s.bsc.WBNB(), erc20s.bsc.BTCB(), erc20s.bsc.USDC(), erc20s.bsc.USDT(), erc20s.bsc.BUSD()];
-  }
+  return _.values(_.get(erc20s, [network.shortname])).map((fn) => fn());
 }
