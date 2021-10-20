@@ -41,11 +41,11 @@ functions:
           path: debug
           method: get
           cors: true
-  leaders:
-    handler: dist/index.leaders
+  allTimeLeaders:
+    handler: dist/index.allTimeLeaders
     fileSystemConfig: ${file(./serverless-fs.yml)}
     events:
       - http:
-          path: leaders/{network}/{token}
+          path: allTimeLeaders/{network}/{token}
           method: get
           cors: true

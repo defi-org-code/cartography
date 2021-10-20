@@ -1,5 +1,9 @@
-export function log(...args: any[]) {
-  console.log(new Date(), ...args);
+import { INTERVAL_SIZE, MAX_HISTORY_BLOCKS_BSC, MAX_HISTORY_BLOCKS_ETH } from "./consts";
+import { Network, networks } from "@defi.org/web3-candies";
+
+export function swizzleLog() {
+  const orig = console.log;
+  console.log = (...args: any[]) => orig("💸", new Date(), ...args);
 }
 
 export function dayUTC(timestamp: number = Date.now()) {
@@ -12,30 +16,21 @@ export function addDaysUTC(add: number, timestamp: number = Date.now()) {
 }
 
 /**
- * Returns {from -> to} missing interval assuming index has no holes (or doesn't exist yet).
- * This algo prioritizes first building the latest interval then going back in time.
- *
- * @param length - max interval length (in case of historical interval) ex. max blocks to fetch
- * @param current - the present state, ex. current block
- * @param earliestIndex - most historical cached or 0, ex. earliest block data cached
- * @param latestIndex - most recent cached or 0, ex. latest block data cached
- * @param lowerBound - max history total. will not return lower than lowerBound
- * @param unit - interval step, ex. 1 block, 1000 millis etc
- *
- * @returns {from,to} or undefined
+ * Returns missing interval assuming index has no holes (or doesn't exist yet).
+ * This algo prioritizes first building the latest interval then going back in time, no more than MAX_BLOCKS_BACK
  */
-export function findIntervalToCache(
-  length: number,
-  current: number,
-  earliestIndex: number = 0,
-  latestIndex: number = 0,
-  lowerBound: number = 0,
-  unit: number = 1
-) {
-  const to = latestIndex != current ? current : Math.max(lowerBound, earliestIndex - unit);
-  const from = (latestIndex || current) != current ? latestIndex + unit : Math.max(lowerBound, to - length);
-  if (from == to && from == lowerBound) return undefined;
-  return { from, to };
+export function nextInterval(network: Network, block: number, earliest: number, latest: number) {
+  const current = block - (block % INTERVAL_SIZE);
+
+  const result = !earliest
+    ? current - INTERVAL_SIZE
+    : current - INTERVAL_SIZE <= latest
+    ? earliest - INTERVAL_SIZE
+    : latest + INTERVAL_SIZE;
+
+  const minimum = current - (network.id == networks.eth.id ? MAX_HISTORY_BLOCKS_ETH : MAX_HISTORY_BLOCKS_BSC);
+
+  return result < minimum ? 0 : result;
 }
 
 /**

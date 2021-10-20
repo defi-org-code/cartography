@@ -1,14 +1,17 @@
-const secrets = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
-// const storagePath = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage.json");
+import * as path from "path";
+import * as os from "os";
 
-export const INTERVAL_SIZE = 1000;
-export const REQ_CHUNK_SIZE = 100;
-export const MAX_DAYS_BACK = 90;
+const SECRETS = JSON.parse(process.env.REPO_SECRETS_JSON || "{}");
 
-export const BSC_URL = secrets.QUICKNODE || config().quicknodeUrl;
-export const BSC_URL2 = secrets.QUICKNODE2 || config().quicknodeUrl2;
-export const ETH_URL = secrets.ALCHEMY || config().alchemyUrl;
-export const REDIS_URL = secrets.REDIS;
+export const STORAGE_DIR = path.resolve(process.env.HOME_DIR || os.tmpdir(), "storage");
+
+export const INTERVAL_SIZE = 1000; // blocks
+export const REQ_CHUNK_SIZE = 100; // blocks
+export const MAX_HISTORY_BLOCKS_BSC = 1_000_000; // ~1month
+export const MAX_HISTORY_BLOCKS_ETH = 200_000; // ~1month
+
+export const BSC_URL = SECRETS.QUICKNODE || config().quicknodeUrl;
+export const ETH_URL = SECRETS.ALCHEMY || config().alchemyUrl;
 
 function config() {
   try {
