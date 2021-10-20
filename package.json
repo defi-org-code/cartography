@@ -1,5 +1,5 @@
 {
-  "name": "defi-leaderboard",
+  "name": "cartography",
   "version": "1.0.0",
   "description": "",
   "license": "MIT",
@@ -7,12 +7,12 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/defi-org-code/defi-leaderboard.git"
+    "url": "git+https://github.com/defi-org-code/cartography.git"
   },
   "bugs": {
-    "url": "https://github.com/defi-org-code/defi-leaderboard/issues"
+    "url": "https://github.com/defi-org-code/cartography/issues"
   },
-  "homepage": "https://github.com/defi-org-code/defi-leaderboard#readme",
+  "homepage": "https://github.com/defi-org-code/cartography#readme",
   "main": "dist/index.js",
   "dependencies": {
     "@defi.org/web3-candies": "2.x"
